@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from smc_ai.config import Settings, get_settings
+from smc_ai.config import PROJECT_ROOT, Settings, get_settings
 
 
 def test_default_pairs_and_timeframes():
@@ -15,4 +15,4 @@ def test_results_dir_defaults_to_project_results():
     settings = get_settings()
 
     assert isinstance(settings.results_dir, Path)
-    assert settings.results_dir.name == "results"
+    assert settings.results_dir == PROJECT_ROOT / "results"

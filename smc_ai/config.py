@@ -10,7 +10,11 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 class Settings(BaseSettings):
     """Application settings shared by the core and dashboard."""
 
-    model_config = SettingsConfigDict(env_prefix="SMC_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="SMC_",
+        env_file=PROJECT_ROOT / ".env",
+        extra="ignore",
+    )
 
     pairs: tuple[str, ...] = ("EURUSD", "GBPUSD", "XAUUSD", "USDJPY", "AUDUSD")
     crypto_pairs: tuple[str, ...] = ("BTCUSDT", "ETHUSDT")
