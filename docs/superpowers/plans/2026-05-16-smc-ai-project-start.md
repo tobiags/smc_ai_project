@@ -36,6 +36,14 @@ Root: `C:\Users\tobid\Downloads\PROJECT TRADING\smc_ai_project`
 - `docs/vps/deployment.md` — VPS deployment notes.
 - `docs/qa/gstack-dashboard-qa.md` — GSTACK/browser QA checklist.
 
+Future, explicitly out of scope for this first implementation:
+
+- `smc_ai/regime/markov.py` — observable Markov chain filter for Bull/Bear/Sideways regimes.
+- `smc_ai/regime/hmm.py` — `hmmlearn` GaussianHMM hidden regime filter.
+- `smc_ai/regime/macro.py` — Trading Economics macro adapter.
+- `smc_ai/regime/scoring.py` — agreement/disagreement scoring against SMC signals.
+- `markovify` is not planned because it targets text generation, not financial regime modeling.
+
 ---
 
 ## Task 1: Project Scaffold and Dependencies
@@ -1561,7 +1569,7 @@ Only commit if files changed during verification.
 
 ### Placeholder Scan
 
-No unresolved implementation markers are intentionally left in this plan. Future MT5/yfinance/Kronos/live trading work is explicitly out of scope for this first implementation.
+No unresolved implementation markers are intentionally left in this plan. Future MT5/yfinance/Kronos/Markov/HMM/Trading Economics/live trading work is explicitly out of scope for this first implementation.
 
 ### Type Consistency
 

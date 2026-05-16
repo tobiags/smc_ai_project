@@ -68,6 +68,8 @@ The first implementation must produce useful local results before VPS deployment
 - MT5 `order_send`.
 - TradingView Desktop MCP integration.
 - Kronos confirmation.
+- Markov/HMM regime intelligence.
+- Trading Economics macro integration.
 - Autoresearch optimization loop.
 - Full EA.
 - Production authentication.
@@ -251,6 +253,12 @@ After the first build:
 - Full WinWorld 8 entry schemas.
 - Autoresearch optimization.
 - TradingView MCP decision assistant.
+- Regime Intelligence:
+  - observable Markov chain filter for Bull/Bear/Sideways states
+  - `hmmlearn` GaussianHMM for hidden market regimes
+  - `Trading Economics` macro adapter for richer future emission variables
+  - `HiddenMarkovModels.jl` as conceptual reference only, not a Python dependency
+  - `markovify` explicitly excluded because it is text-generation oriented
 - Kronos A/B confirmation:
   - A = SMC pure
   - B = SMC + Kronos confirmation
