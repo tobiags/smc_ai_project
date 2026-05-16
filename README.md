@@ -13,6 +13,8 @@ pytest
 
 ## First dashboard run
 
+Available after the dashboard implementation task:
+
 ```powershell
 uvicorn smc_ai.dashboard.app:app --reload
 ```
