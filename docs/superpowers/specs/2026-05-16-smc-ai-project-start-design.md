@@ -264,3 +264,11 @@ After the first build:
   - B = SMC + Kronos confirmation
 - VPS deployment with canary checks.
 - Semi-auto MT5 execution.
+- Agentic research/platform roadmap:
+  - ARIS-style overnight and weekly research after demo validation
+  - TradingAgents-style real-time decision committee
+  - QuantDinger-inspired full platform monitoring and audit patterns
+  - Qlib research lab for advanced quant experiments
+  - AI-Trader-inspired future sharing/signal layer
+  - Scientific Agent Skills-inspired research discipline
+  - Dash as a future advanced dashboard option if FastAPI/Jinja/Plotly becomes limiting
