@@ -1,7 +1,7 @@
 # Agentic Research & Platform Roadmap
 
-**Date:** 2026-05-17  
-**Status:** Validated by user as future roadmap  
+**Date:** 2026-05-17
+**Status:** Validated by user as future roadmap
 **Current priority remains:** Phase 1 SMC core + FastAPI/Jinja2/Plotly dashboard
 
 This document records future research/platform references. These projects guide later architecture, but none replace the WinWorld SMC core.
@@ -202,4 +202,3 @@ Phase 4
 Phase 5
   AI-Trader-inspired sharing/signal layer
 ```
-

@@ -1,5 +1,6 @@
 from typing import Final
 
+import numpy as np
 import pandas as pd
 
 
@@ -28,6 +29,9 @@ def validate_ohlcv(df: pd.DataFrame) -> pd.DataFrame:
 
     if normalized.isna().any().any():
         raise ValueError("OHLCV dataframe contains NaN values")
+
+    if not np.isfinite(normalized.to_numpy()).all():
+        raise ValueError("OHLCV dataframe contains non-finite values")
 
     if (normalized["volume"] < 0).any():
         raise ValueError("OHLCV dataframe contains negative volume")
