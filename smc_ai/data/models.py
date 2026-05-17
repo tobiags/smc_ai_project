@@ -17,6 +17,9 @@ def validate_ohlcv(df: pd.DataFrame) -> pd.DataFrame:
     if not isinstance(normalized.index, pd.DatetimeIndex):
         raise ValueError("OHLCV dataframe index must be a DatetimeIndex")
 
+    if normalized.index.isna().any():
+        raise ValueError("OHLCV dataframe contains missing timestamps")
+
     if normalized.empty:
         raise ValueError("OHLCV dataframe must not be empty")
 

@@ -155,3 +155,20 @@ def test_load_ohlcv_csv_rejects_malformed_time_with_useful_message(tmp_path: Pat
         assert "time" in message
     else:
         raise AssertionError("Expected ValueError")
+
+
+def test_load_ohlcv_csv_rejects_missing_time_value(tmp_path: Path):
+    csv_path = tmp_path / "missing_time.csv"
+    csv_path.write_text(
+        "time,open,high,low,close,volume\n"
+        ",1.1000,1.1010,1.0990,1.1005,100\n",
+        encoding="utf-8",
+    )
+
+    try:
+        load_ohlcv_csv(csv_path)
+    except ValueError as exc:
+        message = str(exc).lower()
+        assert "timestamp" in message or "time" in message
+    else:
+        raise AssertionError("Expected ValueError")
