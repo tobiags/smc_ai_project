@@ -35,6 +35,8 @@ Root: `C:\Users\tobid\Downloads\PROJECT TRADING\smc_ai_project`
 - `tests/**` — pytest coverage for each module.
 - `docs/vps/deployment.md` — VPS deployment notes.
 - `docs/qa/gstack-dashboard-qa.md` — GSTACK/browser QA checklist.
+- `brain/` — markdown project memory for durable facts, future GBrain indexing, and weekly
+  research continuity.
 
 Future, explicitly out of scope for this first implementation:
 
@@ -43,6 +45,9 @@ Future, explicitly out of scope for this first implementation:
 - `smc_ai/regime/macro.py` — Trading Economics macro adapter.
 - `smc_ai/regime/scoring.py` — agreement/disagreement scoring against SMC signals.
 - `markovify` is not planned because it targets text generation, not financial regime modeling.
+- GBrain installation/indexing is future work. Phase 1 only keeps markdown notes under `brain/`.
+- Lossless runtime memory is postponed until Hermes Agent or another runtime proves it is
+  needed for long agent sessions.
 
 ---
 

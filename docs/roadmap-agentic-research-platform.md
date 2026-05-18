@@ -181,6 +181,49 @@ Do not switch to Dash until the simple FastAPI dashboard feels limiting.
 
 ---
 
+## 8. GBrain — Project Memory / Knowledge Layer
+
+Repository: `garrytan/gbrain`
+
+Decision: validated as a future project memory layer.
+
+Role:
+
+- index the local markdown `brain/` directory
+- let agents query durable project facts before proposing changes
+- prevent repeated analysis of already-decided strategy and architecture questions
+- preserve reasons for kept/rejected experiments
+- support ARIS weekly reviews and Hermes Agent research later
+
+Approved memory base:
+
+```text
+brain/
++-- decisions/
++-- experiments/
+|   +-- backtests/
+|   +-- autoresearch/
+|   +-- regime-intelligence/
++-- strategy/
++-- operations/
++-- weekly-reviews/
+```
+
+GBrain is not a trading dependency. It is a future search/index layer over markdown notes.
+
+Lossless-style runtime memory is postponed. It may become useful later if Hermes Agent or
+another long-running agent runtime loses important details during overnight sessions.
+
+Security boundary:
+
+- no broker credentials in `brain/`
+- no agent runtime receives direct MT5 live execution rights without strict safeguards
+- strategy changes proposed by agents must be measured by backtest and validated by a human
+
+See: `docs/roadmap-project-memory-gbrain.md`
+
+---
+
 ## Roadmap Placement
 
 ```text
@@ -189,6 +232,11 @@ Phase 1
 
 Phase 2
   Real historical data + serious backtests + VPS dashboard
+
+Phase 2+
+  Project Memory / Knowledge Layer
+  - brain/ markdown repo
+  - later: GBrain index/search
 
 Phase 2.5
   Markov/HMM Regime Intelligence

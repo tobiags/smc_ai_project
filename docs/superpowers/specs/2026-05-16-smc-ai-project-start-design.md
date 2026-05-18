@@ -61,6 +61,8 @@ The first implementation must produce useful local results before VPS deployment
   - pair detail
   - strategy health
 - GSTACK support for local dashboard QA and future canary-style visual checks.
+- `brain/` markdown memory base for durable decisions, strategy notes, experiments, and
+  future GBrain indexing.
 
 ### Out of Scope for the First Build
 
@@ -73,6 +75,8 @@ The first implementation must produce useful local results before VPS deployment
 - Autoresearch optimization loop.
 - Full EA.
 - Production authentication.
+- GBrain installation/indexing.
+- Lossless runtime memory.
 
 These are later phases after the core/backtest/dashboard loop works.
 
@@ -177,6 +181,12 @@ smc_ai_project/
 │   └── superpowers/
 │       ├── specs/
 │       └── plans/
+├── brain/
+│   ├── decisions/
+│   ├── experiments/
+│   ├── strategy/
+│   ├── operations/
+│   └── weekly-reviews/
 ├── smc_ai/
 │   ├── __init__.py
 │   ├── config.py
@@ -272,3 +282,9 @@ After the first build:
   - AI-Trader-inspired future sharing/signal layer
   - Scientific Agent Skills-inspired research discipline
   - Dash as a future advanced dashboard option if FastAPI/Jinja/Plotly becomes limiting
+- Project Memory / GBrain layer:
+  - local markdown `brain/` directory for durable project facts
+  - later GBrain indexing over decisions, experiments, backtests, strategy rules, operations,
+    and weekly reviews
+  - Lossless remains optional and postponed until a Hermes/OpenClaw-style runtime actually
+    needs searchable raw conversation recall
