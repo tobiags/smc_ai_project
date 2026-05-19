@@ -16,16 +16,49 @@ Add three repositories as future references:
 
 ### cinar/indicator
 
-Use as an indicator taxonomy and strategy-composition reference.
+Use as an indicator taxonomy, strategy-composition, and backtesting-pattern reference.
+
+Do not judge this repo by its implementation language. The useful part for us is the design:
+how indicators are grouped, how strategies are composed, how actions are produced, and how
+backtests can compare multiple symbols and multiple strategies.
 
 Useful for:
 
 - volatility, momentum, trend, and volume feature ideas
-- compound strategy patterns
-- backtesting architecture inspiration
+- compound strategy patterns: AND, OR, Majority, Split
+- strategy decorators / filters: stop-loss, no-loss, inverse, action transforms
+- volatility/displacement candidates: ATR, Bollinger Band Width, Choppiness Index,
+  Donchian Channel, Keltner Channel, SuperTrend, Ulcer Index
+- backtesting architecture inspiration, especially symbol x strategy reporting
+- deterministic CSV fixtures for future indicator tests
 - future MCP/agent tooling ideas
 
-Do not use as a core dependency now because it is Go-based and the project core is Python.
+Do not use as a core dependency now. Extract the useful patterns and re-implement them in
+our Python architecture only when needed.
+
+Key architecture consequence:
+
+The project must remain a strategy research infrastructure, not a WinWorld-only application.
+WinWorld SMC is the first strategy profile. Later profiles can include ICT, Simple Markets Swing
+Trading Plan, or another documented strategy without rewriting data loading, backtesting,
+dashboarding, reporting, or the project memory layer.
+
+Target abstraction:
+
+```text
+DataProvider -> FeaturePipeline -> StrategyProfile -> SignalComposer
+             -> RiskModel -> BacktestRunner -> Report/Dashboard/Brain
+```
+
+Every future strategy profile should define:
+
+- required timeframes
+- setup rules
+- entry triggers
+- invalidation rules
+- risk model defaults
+- reporting labels
+- experiment parameters
 
 ### hudson-and-thames/mlfinlab
 

@@ -313,7 +313,8 @@ Repositories:
 
 Roles:
 
-- `cinar/indicator`: indicator taxonomy, strategy-composition, and backtesting inspiration
+- `cinar/indicator`: language-independent indicator taxonomy, strategy-composition,
+  decorator/filter, MCP action, and backtesting inspiration
 - `mlfinlab`: quant methodology reference for labeling, cross-validation, codependence,
   feature importance, backtest overfitting, and bet sizing
 - `cocoindex`: future incremental indexing reference for long-horizon agent memory and
@@ -324,8 +325,17 @@ Boundary:
 - none of these replaces WinWorld SMC rules
 - none enters Phase 1 implementation
 - `mlfinlab` licensing must be checked before direct code use
-- `cinar/indicator` is Go-based, so it is a reference before it is a dependency
+- `cinar/indicator` should be mined for reusable trading patterns, not adopted because of
+  its implementation language
 - `cocoindex` belongs to knowledge infrastructure, not trading execution
+
+Architecture principle:
+
+The platform must support replaceable strategy profiles. WinWorld SMC is the first strategy,
+but the same infrastructure should later run ICT, Simple Markets Swing Trading Plan, or another
+documented methodology through the same data, backtest, dashboard, report, and memory layers.
+
+See: `docs/architecture-strategy-profiles.md`
 
 See: `docs/roadmap-quant-indicators-indexing-references.md`
 
