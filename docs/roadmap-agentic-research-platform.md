@@ -301,6 +301,36 @@ See: `docs/roadmap-llm-wiki-knowledge-layer.md`
 
 ---
 
+## 11. Quant / Indicator / Indexing References
+
+Decision: accepted as future references.
+
+Repositories:
+
+- `cinar/indicator`
+- `hudson-and-thames/mlfinlab`
+- `cocoindex-io/cocoindex`
+
+Roles:
+
+- `cinar/indicator`: indicator taxonomy, strategy-composition, and backtesting inspiration
+- `mlfinlab`: quant methodology reference for labeling, cross-validation, codependence,
+  feature importance, backtest overfitting, and bet sizing
+- `cocoindex`: future incremental indexing reference for long-horizon agent memory and
+  changing project knowledge
+
+Boundary:
+
+- none of these replaces WinWorld SMC rules
+- none enters Phase 1 implementation
+- `mlfinlab` licensing must be checked before direct code use
+- `cinar/indicator` is Go-based, so it is a reference before it is a dependency
+- `cocoindex` belongs to knowledge infrastructure, not trading execution
+
+See: `docs/roadmap-quant-indicators-indexing-references.md`
+
+---
+
 ## Roadmap Placement
 
 ```text
@@ -319,6 +349,7 @@ Phase 2+
 Phase 2.5
   Markov/HMM Regime Intelligence
   Signal Ensemble / Conviction Engine
+  Indicator taxonomy and codependence research references
 
 Phase 3
   TradingView MCP + TradingAgents-style real-time decision assistant
@@ -327,6 +358,11 @@ Phase 4
   ARIS weekly/night research + Qlib/Kronos/TradingEconomics research lab
   SMC + regime + Kronos + conviction engine comparative research
   LLM Wiki / Knowledge Wiki evaluation for research memory
+  mlfinlab-style validation, overfitting checks, and bet sizing research
+
+Phase 4+
+  Incremental knowledge indexing
+  - evaluate cocoindex against GBrain / LLM Wiki
 
 Phase 5
   AI-Trader-inspired sharing/signal layer

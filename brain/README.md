@@ -33,6 +33,8 @@ Future optional layer:
 
 - `nashsu/llm_wiki` may be tested later to generate a richer linked concept wiki from raw
   sources, while `brain/` remains the lightweight durable memory.
+- `cocoindex-io/cocoindex` may be evaluated later for incremental indexing of changing
+  knowledge sources such as backtests, weekly reviews, and research notes.
 
 ## Note Rules
 
