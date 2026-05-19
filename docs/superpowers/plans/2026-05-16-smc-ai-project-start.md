@@ -44,6 +44,11 @@ Future, explicitly out of scope for this first implementation:
 - `smc_ai/regime/hmm.py` — `hmmlearn` GaussianHMM hidden regime filter.
 - `smc_ai/regime/macro.py` — Trading Economics macro adapter.
 - `smc_ai/regime/scoring.py` — agreement/disagreement scoring against SMC signals.
+- `smc_ai/scoring/signal_quality.py` — future IC and forward outcome measurement.
+- `smc_ai/scoring/correlation.py` — future shared-variance and correlation checks.
+- `smc_ai/scoring/breadth.py` — future effective breadth calculation.
+- `smc_ai/scoring/conviction.py` — future A+/A/B/C/reject trade tiering.
+- `smc_ai/scoring/position_sizing.py` — future conservative sizing recommendation.
 - `markovify` is not planned because it targets text generation, not financial regime modeling.
 - GBrain installation/indexing is future work. Phase 1 only keeps markdown notes under `brain/`.
 - Lossless runtime memory is postponed until Hermes Agent or another runtime proves it is

@@ -23,6 +23,8 @@ execution layer.
 - `experiments/backtests/` - measured backtest outcomes.
 - `experiments/autoresearch/` - ARIS-style research loops and keep/revert results.
 - `experiments/regime-intelligence/` - Markov, HMM, Kronos, macro research notes.
+- `experiments/regime-intelligence/signal-conviction-engine.md` - future statistical
+  scoring notes for IC, correlation, effective breadth, and conviction tiers.
 - `strategy/` - durable WinWorld SMC rules and strategy definitions.
 - `operations/` - VPS, MT5, dashboard, and deployment operating notes.
 - `weekly-reviews/` - weekly strategy health and improvement reviews.

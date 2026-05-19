@@ -224,6 +224,50 @@ See: `docs/roadmap-project-memory-gbrain.md`
 
 ---
 
+## 9. Signal Ensemble / Conviction Engine
+
+Decision: validated as a future statistical, probabilistic, and mathematical layer.
+
+Role:
+
+- estimate whether SMC confirmations are genuinely independent
+- penalize correlated confirmations that create false confidence
+- score valid setups into trade tiers such as A+, A, B, C, or Reject
+- support conservative position sizing recommendations
+- improve expected value, not just directional accuracy
+
+Core principle:
+
+```text
+IR = IC * sqrt(Breadth) * TC
+```
+
+For this project:
+
+- `IC` measures whether a signal family predicts future trade outcome
+- `Breadth` is the effective number of independent confirmations after correlation penalty
+- `TC` represents execution quality after spread, slippage, timing, and practical constraints
+
+Candidate signal families:
+
+- SMC structure: BOS, ChoCh, IDM, sweep quality
+- POI quality: OB, FVG, H4 confluence
+- session context: Asia, London, New York
+- volatility/displacement: ATR, candle body strength, impulse quality
+- regime intelligence: Markov, HMM, macro
+- forecast confirmation: Kronos or equivalent
+- execution quality: RR, SL distance, target distance, spread/slippage proxy
+
+Boundary:
+
+- this layer does not replace WinWorld SMC validity
+- raw Kelly sizing is rejected for live trading
+- all weights and tiers must be tested walk-forward
+
+See: `docs/roadmap-signal-conviction-engine.md`
+
+---
+
 ## Roadmap Placement
 
 ```text
@@ -240,12 +284,14 @@ Phase 2+
 
 Phase 2.5
   Markov/HMM Regime Intelligence
+  Signal Ensemble / Conviction Engine
 
 Phase 3
   TradingView MCP + TradingAgents-style real-time decision assistant
 
 Phase 4
   ARIS weekly/night research + Qlib/Kronos/TradingEconomics research lab
+  SMC + regime + Kronos + conviction engine comparative research
 
 Phase 5
   AI-Trader-inspired sharing/signal layer

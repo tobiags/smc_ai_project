@@ -269,6 +269,12 @@ After the first build:
   - `Trading Economics` macro adapter for richer future emission variables
   - `HiddenMarkovModels.jl` as conceptual reference only, not a Python dependency
   - `markovify` explicitly excluded because it is text-generation oriented
+- Signal Ensemble / Conviction Engine:
+  - measure signal family IC and correlation
+  - estimate effective breadth instead of overcounting correlated confirmations
+  - score valid SMC setups into A+/A/B/C/reject tiers
+  - support conservative sizing recommendations after walk-forward tests
+  - keep WinWorld SMC validity as the trade permission layer
 - Kronos A/B confirmation:
   - A = SMC pure
   - B = SMC + Kronos confirmation
