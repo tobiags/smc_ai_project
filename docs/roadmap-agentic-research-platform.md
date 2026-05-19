@@ -268,6 +268,39 @@ See: `docs/roadmap-signal-conviction-engine.md`
 
 ---
 
+## 10. LLM Wiki — Structured Knowledge Wiki
+
+Repository: `nashsu/llm_wiki`
+
+Decision: validated as a future knowledge-memory reference.
+
+Role:
+
+- transform raw research sources into a linked wiki
+- keep source traceability between raw documents and generated pages
+- connect concepts such as IDM, OB, FVG, Markov, HMM, Kronos, and conviction scoring
+- surface knowledge gaps, isolated concepts, and useful research clusters
+- complement `brain/` and future GBrain indexing
+
+Relationship to current memory:
+
+```text
+brain/ = lightweight durable markdown memory
+GBrain = future search/index over markdown facts
+LLM Wiki = optional heavier generated concept wiki from raw sources
+```
+
+Boundary:
+
+- not part of Phase 1
+- not a trading engine
+- no broker credentials or live execution access
+- generated knowledge must remain human-reviewed before it changes strategy rules
+
+See: `docs/roadmap-llm-wiki-knowledge-layer.md`
+
+---
+
 ## Roadmap Placement
 
 ```text
@@ -281,6 +314,7 @@ Phase 2+
   Project Memory / Knowledge Layer
   - brain/ markdown repo
   - later: GBrain index/search
+  - optional LLM Wiki trial when sources/results justify it
 
 Phase 2.5
   Markov/HMM Regime Intelligence
@@ -292,6 +326,7 @@ Phase 3
 Phase 4
   ARIS weekly/night research + Qlib/Kronos/TradingEconomics research lab
   SMC + regime + Kronos + conviction engine comparative research
+  LLM Wiki / Knowledge Wiki evaluation for research memory
 
 Phase 5
   AI-Trader-inspired sharing/signal layer

@@ -29,6 +29,11 @@ execution layer.
 - `operations/` - VPS, MT5, dashboard, and deployment operating notes.
 - `weekly-reviews/` - weekly strategy health and improvement reviews.
 
+Future optional layer:
+
+- `nashsu/llm_wiki` may be tested later to generate a richer linked concept wiki from raw
+  sources, while `brain/` remains the lightweight durable memory.
+
 ## Note Rules
 
 1. Record facts, decisions, and measurements.
