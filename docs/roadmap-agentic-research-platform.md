@@ -181,7 +181,39 @@ Do not switch to Dash until the simple FastAPI dashboard feels limiting.
 
 ---
 
-## 8. GBrain — Project Memory / Knowledge Layer
+## 8. OpenStock — Dashboard / Watchlist / Alertes
+
+Repository: `Open-Dev-Society/OpenStock`
+
+Decision: accepted as a future product/UX reference.
+
+Role:
+
+- market dashboard inspiration
+- multi-asset watchlist inspiration
+- personalized alerts inspiration
+- asset detail page inspiration
+- future shareable product experience inspiration
+
+How it maps to this project:
+
+- watch Forex and crypto symbols followed by the SMC system
+- show D1/H4 bias, active POI, M15 signal status, and latest backtest health per symbol
+- trigger alerts when price reaches OB/FVG zones or when a setup becomes actionable
+- keep alerts as decision assistance first, not automatic execution
+
+Boundaries:
+
+- not Phase 1
+- not a trading engine
+- do not replace MT5/Binance data paths
+- AGPL-3.0 license means no direct code reuse without deliberate licensing review
+
+See: `docs/roadmap-openstock-dashboard-watchlist-alerts.md`
+
+---
+
+## 9. GBrain — Project Memory / Knowledge Layer
 
 Repository: `garrytan/gbrain`
 
@@ -224,7 +256,7 @@ See: `docs/roadmap-project-memory-gbrain.md`
 
 ---
 
-## 9. Signal Ensemble / Conviction Engine
+## 10. Signal Ensemble / Conviction Engine
 
 Decision: validated as a future statistical, probabilistic, and mathematical layer.
 
@@ -268,7 +300,7 @@ See: `docs/roadmap-signal-conviction-engine.md`
 
 ---
 
-## 10. LLM Wiki — Structured Knowledge Wiki
+## 11. LLM Wiki — Structured Knowledge Wiki
 
 Repository: `nashsu/llm_wiki`
 
@@ -301,7 +333,7 @@ See: `docs/roadmap-llm-wiki-knowledge-layer.md`
 
 ---
 
-## 11. Quant / Indicator / Indexing References
+## 12. Quant / Indicator / Indexing References
 
 Decision: accepted as future references.
 
@@ -349,6 +381,7 @@ Phase 1
 
 Phase 2
   Real historical data + serious backtests + VPS dashboard
+  OpenStock-inspired watchlist and asset pages
 
 Phase 2+
   Project Memory / Knowledge Layer
@@ -363,6 +396,7 @@ Phase 2.5
 
 Phase 3
   TradingView MCP + TradingAgents-style real-time decision assistant
+  OpenStock-inspired alerts for SMC setup monitoring
 
 Phase 4
   ARIS weekly/night research + Qlib/Kronos/TradingEconomics research lab
@@ -376,4 +410,5 @@ Phase 4+
 
 Phase 5
   AI-Trader-inspired sharing/signal layer
+  OpenStock-inspired product UX for watchlist, alerts, and asset detail pages
 ```

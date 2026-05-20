@@ -29,6 +29,11 @@ execution layer.
 - `operations/` - VPS, MT5, dashboard, and deployment operating notes.
 - `weekly-reviews/` - weekly strategy health and improvement reviews.
 
+Recent product/UX references:
+
+- `decisions/2026-05-20-openstock-dashboard-watchlist-alerts.md` - OpenStock as a future
+  reference for dashboard, watchlist, alerts, and asset detail pages.
+
 Future optional layer:
 
 - `nashsu/llm_wiki` may be tested later to generate a richer linked concept wiki from raw
