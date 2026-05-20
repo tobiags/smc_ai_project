@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Run {{ result.run_id }}{% endblock %}
+{% block title %}Backtest {{ result.run_id }}{% endblock %}
 {% block content %}
 <section class="panel">
   <h2>{{ result.symbol }} - {{ result.run_id }}</h2>
   <div class="kpis">
     {% for key, value in result.kpis.items() %}
-      <div class="kpi"><span>{{ key }}</span><strong>{{ value }}</strong></div>
+      <div class="kpi"><span>{{ kpi_labels.get(key, key) }}</span><strong>{{ value }}</strong></div>
     {% endfor %}
   </div>
   <div class="chart">{{ chart_html | safe }}</div>
   <table>
     <thead>
-      <tr><th>Time</th><th>Direction</th><th>Schema</th><th>RR</th><th>PNL</th></tr>
+      <tr><th>Heure</th><th>Direction</th><th>Schéma</th><th>RR</th><th>PNL</th></tr>
     </thead>
     <tbody>
       {% for trade in result.trades %}

@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Strategy Health{% endblock %}
+{% block title %}Santé de la stratégie{% endblock %}
 {% block content %}
 <section class="panel">
-  <h2>Strategy Health</h2>
+  <h2>Santé de la stratégie</h2>
   {% if latest %}
-    <p>Status: sample monitoring</p>
-    <p>Win rate: {{ latest.kpis.win_rate }}</p>
-    <p>Profit factor: {{ latest.kpis.profit_factor }}</p>
-    <p>Max drawdown: {{ latest.kpis.max_drawdown }}</p>
+    <p>Statut : suivi sample</p>
+    <p>{{ kpi_labels.win_rate }} : {{ latest.kpis.win_rate }}</p>
+    <p>{{ kpi_labels.profit_factor }} : {{ latest.kpis.profit_factor }}</p>
+    <p>{{ kpi_labels.max_drawdown }} : {{ latest.kpis.max_drawdown }}</p>
   {% else %}
-    <p>No result available for health calculation.</p>
+    <p>Aucun résultat disponible pour calculer la santé de la stratégie.</p>
   {% endif %}
 </section>
 {% endblock %}

@@ -1,23 +1,23 @@
 {% extends "base.html" %}
-{% block title %}SMC AI Dashboard{% endblock %}
+{% block title %}Tableau de bord SMC AI{% endblock %}
 {% block content %}
 <section class="panel">
-  <h2>Overview</h2>
+  <h2>Vue d'ensemble</h2>
   {% if latest %}
-    <p>Latest run: <a href="/runs/{{ latest.run_id }}">{{ latest.run_id }}</a></p>
-    <p>Symbol: {{ latest.symbol }}</p>
-    <p>Total trades: {{ latest.kpis.total_trades }}</p>
+    <p>Dernier backtest : <a href="/runs/{{ latest.run_id }}">{{ latest.run_id }}</a></p>
+    <p>Symbole : {{ latest.symbol }}</p>
+    <p>Nombre de trades : {{ latest.kpis.total_trades }}</p>
   {% else %}
-    <p>No backtest result found. Run <code>python -m smc_ai.main</code>.</p>
+    <p>Aucun résultat de backtest trouvé. Lance <code>python -m smc_ai.main</code>.</p>
   {% endif %}
 </section>
 
 <section class="panel">
-  <h2>Recent runs</h2>
+  <h2>Backtests récents</h2>
   {% if results %}
     <table>
       <thead>
-        <tr><th>Run</th><th>Symbol</th><th>Trades</th><th>Win rate</th></tr>
+        <tr><th>Run</th><th>Symbole</th><th>Trades</th><th>Taux de réussite</th></tr>
       </thead>
       <tbody>
       {% for result in results %}
@@ -31,7 +31,7 @@
       </tbody>
     </table>
   {% else %}
-    <p>No runs available.</p>
+    <p>Aucun backtest disponible.</p>
   {% endif %}
 </section>
 {% endblock %}

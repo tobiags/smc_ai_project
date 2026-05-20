@@ -24,6 +24,8 @@ def test_dashboard_home_lists_latest_run(tmp_path, monkeypatch):
     assert response.status_code == 200
     assert result.run_id in response.text
     assert "EURUSD" in response.text
+    assert "Dernier backtest" in response.text
+    assert "Taux de réussite" in response.text
 
 
 def test_run_detail_includes_plotly_chart(tmp_path, monkeypatch):
@@ -40,6 +42,8 @@ def test_run_detail_includes_plotly_chart(tmp_path, monkeypatch):
     assert response.status_code == 200
     assert "Plotly.newPlot" in response.text
     assert "EURUSD" in response.text
+    assert "Capital initial" in response.text
+    assert "Schéma" in response.text
 
 
 def test_run_detail_returns_404_for_missing_run(tmp_path, monkeypatch):

@@ -10,6 +10,14 @@ from smc_ai.config import get_settings
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
+KPI_LABELS = {
+    "starting_balance": "Capital initial",
+    "ending_balance": "Capital final",
+    "total_trades": "Nombre de trades",
+    "win_rate": "Taux de réussite",
+    "profit_factor": "Facteur de profit",
+    "max_drawdown": "Drawdown max",
+}
 
 
 def _equity_chart_html(equity_curve: list[dict[str, float | str]]) -> str:
@@ -57,7 +65,11 @@ def run_detail(request: Request, run_id: str):
     return templates.TemplateResponse(
         request,
         "run_detail.html",
-        {"result": result, "chart_html": _equity_chart_html(result.equity_curve)},
+        {
+            "result": result,
+            "chart_html": _equity_chart_html(result.equity_curve),
+            "kpi_labels": KPI_LABELS,
+        },
     )
 
 
@@ -65,4 +77,8 @@ def run_detail(request: Request, run_id: str):
 def health(request: Request):
     results = list_results(get_settings().results_dir)
     latest = results[0] if results else None
-    return templates.TemplateResponse(request, "health.html", {"latest": latest})
+    return templates.TemplateResponse(
+        request,
+        "health.html",
+        {"latest": latest, "kpi_labels": KPI_LABELS},
+    )

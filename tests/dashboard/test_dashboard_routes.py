@@ -9,7 +9,7 @@ def test_dashboard_home_returns_html():
     response = client.get("/")
 
     assert response.status_code == 200
-    assert "SMC AI Dashboard" in response.text
+    assert "Tableau de bord SMC AI" in response.text
 
 
 def test_dashboard_health_returns_html():
@@ -18,4 +18,4 @@ def test_dashboard_health_returns_html():
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert "Strategy Health" in response.text
+    assert "Santé de la stratégie" in response.text

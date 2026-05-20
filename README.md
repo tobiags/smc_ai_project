@@ -1,8 +1,8 @@
-# SMC AI Project
+# Projet SMC AI
 
-Personal Advanced SMC backtester and dashboard.
+Backtester Advanced SMC personnel et tableau de bord de suivi.
 
-## First local setup
+## Première installation locale
 
 ```powershell
 python -m venv .venv
@@ -11,21 +11,21 @@ pip install -e ".[dev]"
 pytest
 ```
 
-## First dashboard run
+## Premier lancement du tableau de bord
 
-Generate a deterministic sample backtest result first:
+Génère d'abord un résultat de backtest sample déterministe :
 
 ```powershell
 python -m smc_ai.main
 ```
 
-Then start the dashboard:
+Puis démarre le tableau de bord :
 
 ```powershell
 uvicorn smc_ai.dashboard.app:app --reload
 ```
 
-Open:
+Ouvre :
 
 ```text
 http://127.0.0.1:8000/
@@ -34,23 +34,25 @@ http://127.0.0.1:8000/health
 
 ## Architecture
 
-The SMC core is independent from the dashboard. The dashboard reads JSON results from `results/`.
+Le moteur SMC est indépendant du tableau de bord. Le tableau de bord lit les résultats JSON
+depuis `results/`.
 
-Current implemented flow:
+Flux actuellement implémenté :
 
 ```text
-sample OHLCV -> sample signals -> sample backtest -> JSON result -> FastAPI dashboard
+OHLCV sample -> signaux sample -> backtest sample -> résultat JSON -> tableau de bord FastAPI
 ```
 
-The signal detector is deliberately simple for now. It is a stable scaffold for the dashboard,
-export, and backtest loop before the full WinWorld SMC engine is implemented.
+Le détecteur de signaux est volontairement simple pour l'instant. Il sert de socle stable pour
+la boucle dashboard, export et backtest avant l'implémentation complète du moteur WinWorld SMC.
 
-## QA and VPS notes
+## Notes QA et VPS
 
-- Dashboard QA checklist: `docs/qa/gstack-dashboard-qa.md`
-- VPS deployment direction: `docs/vps/deployment.md`
+- Checklist QA du tableau de bord : `docs/qa/gstack-dashboard-qa.md`
+- Direction de déploiement VPS : `docs/vps/deployment.md`
 
-## Project memory
+## Mémoire projet
 
-Durable strategy and architecture memory lives in `brain/`. It is plain markdown today and is
-designed to be indexed later by GBrain. Do not store broker credentials or secrets there.
+La mémoire durable de stratégie et d'architecture vit dans `brain/`. Elle est en markdown simple
+aujourd'hui et pourra être indexée plus tard par GBrain. Ne stocke jamais d'identifiants broker
+ou de secrets dans ce dossier.

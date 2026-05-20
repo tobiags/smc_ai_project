@@ -1,22 +1,22 @@
-# GSTACK Dashboard QA
+# QA GSTACK du tableau de bord
 
-GSTACK is support tooling for dashboard verification. It is not part of the SMC trading core.
+GSTACK sert à vérifier le tableau de bord. Il ne fait pas partie du moteur de trading SMC.
 
-## Local QA Flow
+## Flux QA local
 
-1. Generate a sample result:
+1. Générer un résultat sample :
 
 ```powershell
 rtk python -m smc_ai.main
 ```
 
-2. Start the dashboard:
+2. Démarrer le tableau de bord :
 
 ```powershell
 rtk uvicorn smc_ai.dashboard.app:app --reload
 ```
 
-3. Inspect these pages with Browser/GSTACK:
+3. Inspecter ces pages avec Browser/GSTACK :
 
 ```text
 http://127.0.0.1:8000/
@@ -24,26 +24,26 @@ http://127.0.0.1:8000/health
 http://127.0.0.1:8000/runs/{run_id}
 ```
 
-## Visual Checks
+## Vérifications visuelles
 
-- Header and navigation are visible.
-- Latest run appears on the home page.
-- KPI cards are readable.
-- Plotly equity chart renders on the run detail page.
-- Trades table does not overflow on desktop width.
-- Health page shows win rate, profit factor, and max drawdown.
+- L'en-tête et la navigation sont visibles.
+- Le dernier backtest apparaît sur la page d'accueil.
+- Les cartes KPI sont lisibles.
+- La courbe d'equity Plotly s'affiche sur la page détail.
+- Le tableau des trades ne déborde pas en largeur desktop.
+- La page santé affiche le taux de réussite, le facteur de profit et le drawdown max.
 
-## Later VPS Canary Checks
+## Vérifications canary futures sur VPS
 
-After deployment, use GSTACK canary-style checks for:
+Après déploiement, utiliser GSTACK pour vérifier :
 
-- home page HTTP 200
-- no console errors
-- chart visible
-- health page visible
-- latest run link works
+- page d'accueil en HTTP 200
+- aucune erreur console
+- graphique visible
+- page santé visible
+- lien du dernier backtest fonctionnel
 
-## Boundary
+## Limite
 
-GSTACK can inspect the dashboard and help catch visual regressions. It must not receive broker
-credentials or direct MT5 execution access.
+GSTACK peut inspecter le tableau de bord et aider à détecter les régressions visuelles. Il ne doit
+recevoir aucun identifiant broker et aucun accès direct à l'exécution MT5.

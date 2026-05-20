@@ -1,18 +1,19 @@
-# VPS Deployment Direction
+# Direction de déploiement VPS
 
-The first VPS deployment hosts only the FastAPI dashboard and exported `results/` files.
+Le premier déploiement VPS héberge uniquement le tableau de bord FastAPI et les fichiers exportés
+dans `results/`.
 
-## Initial Shape
+## Forme initiale
 
 ```text
 VPS
 |-- smc_ai_project/
 |-- .venv/
 |-- results/
-`-- systemd, Coolify, or another process manager running uvicorn/gunicorn
+`-- systemd, Coolify, ou autre gestionnaire de process lançant uvicorn/gunicorn
 ```
 
-## Install
+## Installation
 
 ```powershell
 python -m venv .venv
@@ -20,26 +21,27 @@ python -m venv .venv
 pip install -e ".[dev]"
 ```
 
-## Run Command
+## Commande de lancement
 
 ```powershell
 uvicorn smc_ai.dashboard.app:app --host 0.0.0.0 --port 8000
 ```
 
-## Reverse Proxy
+## Reverse proxy
 
-Use Coolify, Caddy, or Nginx to route HTTPS traffic to port `8000`.
+Utiliser Coolify, Caddy ou Nginx pour router le trafic HTTPS vers le port `8000`.
 
-## Result Sync
+## Synchronisation des résultats
 
-MT5 data access remains local on Windows at first. The VPS dashboard consumes exported JSON result
-files. Later, a sync job can upload `results/*.json` from the Windows machine to the VPS.
+L'accès aux données MT5 reste local sur Windows au début. Le tableau de bord VPS consomme les
+résultats JSON exportés. Plus tard, un job de synchronisation pourra envoyer `results/*.json`
+depuis la machine Windows vers le VPS.
 
-## Important Boundary
+## Limite importante
 
-The VPS dashboard is read-only in the first deployment. It must not:
+Le tableau de bord VPS est en lecture seule dans le premier déploiement. Il ne doit pas :
 
-- send MT5 orders
-- store broker passwords
-- modify strategy parameters without human validation
-- run autonomous live execution
+- envoyer des ordres MT5
+- stocker des mots de passe broker
+- modifier les paramètres de stratégie sans validation humaine
+- lancer une exécution live autonome
