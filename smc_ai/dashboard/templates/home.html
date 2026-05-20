@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}SMC AI Dashboard{% endblock %}
+{% block content %}
+<section class="panel">
+  <h2>Overview</h2>
+  {% if latest %}
+    <p>Latest run: <a href="/runs/{{ latest.run_id }}">{{ latest.run_id }}</a></p>
+    <p>Symbol: {{ latest.symbol }}</p>
+    <p>Total trades: {{ latest.kpis.total_trades }}</p>
+  {% else %}
+    <p>No backtest result found. Run <code>python -m smc_ai.main</code>.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Recent runs</h2>
+  {% if results %}
+    <table>
+      <thead>
+        <tr><th>Run</th><th>Symbol</th><th>Trades</th><th>Win rate</th></tr>
+      </thead>
+      <tbody>
+      {% for result in results %}
+        <tr>
+          <td><a href="/runs/{{ result.run_id }}">{{ result.run_id }}</a></td>
+          <td>{{ result.symbol }}</td>
+          <td>{{ result.kpis.total_trades }}</td>
+          <td>{{ result.kpis.win_rate }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No runs available.</p>
+  {% endif %}
+</section>
+{% endblock %}

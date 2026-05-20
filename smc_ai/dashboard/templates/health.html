@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Strategy Health{% endblock %}
+{% block content %}
+<section class="panel">
+  <h2>Strategy Health</h2>
+  {% if latest %}
+    <p>Status: sample monitoring</p>
+    <p>Win rate: {{ latest.kpis.win_rate }}</p>
+    <p>Profit factor: {{ latest.kpis.profit_factor }}</p>
+    <p>Max drawdown: {{ latest.kpis.max_drawdown }}</p>
+  {% else %}
+    <p>No result available for health calculation.</p>
+  {% endif %}
+</section>
+{% endblock %}
