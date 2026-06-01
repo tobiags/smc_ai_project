@@ -33,6 +33,8 @@ Recent product/UX references:
 
 - `decisions/2026-05-20-openstock-dashboard-watchlist-alerts.md` - OpenStock as a future
   reference for dashboard, watchlist, alerts, and asset detail pages.
+- `decisions/2026-06-01-quant-ml-journal-review-references.md` - quant ML, Markov,
+  Monte Carlo, RL, and monthly journal review references.
 
 Future optional layer:
 

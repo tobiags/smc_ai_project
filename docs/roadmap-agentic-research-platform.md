@@ -373,6 +373,42 @@ See: `docs/roadmap-quant-indicators-indexing-references.md`
 
 ---
 
+## 13. Quant ML / Markov / Journal Review References
+
+Decision: accepted as future research and improvement references.
+
+References:
+
+- `stefan-jansen/machine-learning-for-trading`
+- `TradeMaster-NTU/TradeMaster`
+- `jpmorganchase/python-training`
+- `GriffinAustin/pynance`
+- `RomanMichaelPaolucci/Q-Fin`
+- `federicomariamassari/financial-engineering`
+- Markov regimes article and pasted Markov framework
+- Journal Review + Claude / ZCT image
+
+Roles:
+
+- Stefan Jansen: ML trading workflow, features, labels, validation, overfitting control
+- TradeMaster: future RL trading lab reference, not live execution
+- Markov articles: regime intelligence, transition matrices, Monte Carlo, walk-forward
+- Journal Review: monthly / 30-trade improvement loop
+- JPM Python Training: Python finance/data-viz learning material
+- PyNance: lightweight feature/label/data analysis inspiration
+- Q-Fin and Financial Engineering: Monte Carlo, stochastic processes, option/risk references
+
+Boundaries:
+
+- none enters Phase 1 implementation
+- no ML/RL model may override WinWorld SMC invalidation
+- Journal Review rules must be testable, falsifiable, and tracked before adoption
+- Markov and Monte Carlo provide probabilities/context, not certainty
+
+See: `docs/roadmap-quant-ml-journal-review-references.md`
+
+---
+
 ## Roadmap Placement
 
 ```text
@@ -382,6 +418,7 @@ Phase 1
 Phase 2
   Real historical data + serious backtests + VPS dashboard
   OpenStock-inspired watchlist and asset pages
+  Journal Review initial on serious backtest and demo-forward results
 
 Phase 2+
   Project Memory / Knowledge Layer
@@ -391,6 +428,7 @@ Phase 2+
 
 Phase 2.5
   Markov/HMM Regime Intelligence
+  Markov transition matrix + Monte Carlo research
   Signal Ensemble / Conviction Engine
   Indicator taxonomy and codependence research references
 
@@ -403,10 +441,12 @@ Phase 4
   SMC + regime + Kronos + conviction engine comparative research
   LLM Wiki / Knowledge Wiki evaluation for research memory
   mlfinlab-style validation, overfitting checks, and bet sizing research
+  Stefan Jansen ML workflow + Q-Fin / Financial Engineering risk simulation references
 
 Phase 4+
   Incremental knowledge indexing
   - evaluate cocoindex against GBrain / LLM Wiki
+  TradeMaster RL lab observation for trade management/sizing only
 
 Phase 5
   AI-Trader-inspired sharing/signal layer
