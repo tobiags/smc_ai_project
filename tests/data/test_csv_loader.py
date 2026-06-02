@@ -172,3 +172,18 @@ def test_load_ohlcv_csv_rejects_missing_time_value(tmp_path: Path):
         assert "timestamp" in message or "time" in message
     else:
         raise AssertionError("Expected ValueError")
+
+
+def test_load_ohlcv_csv_accepts_broker_gmt_time_format(tmp_path: Path):
+    csv_path = tmp_path / "EURUSD_H1.csv"
+    csv_path.write_text(
+        "Gmt time,Open,High,Low,Close,Volume\n"
+        "01.07.2020 00:00:00.000,1.12336,1.12336,1.12275,1.12306,4148.0298\n",
+        encoding="utf-8",
+    )
+
+    df = load_ohlcv_csv(csv_path)
+
+    assert list(df.columns) == ["open", "high", "low", "close", "volume"]
+    assert df.index[0] == pd.Timestamp("2020-07-01 00:00:00")
+    assert df.iloc[0]["close"] == 1.12306

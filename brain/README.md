@@ -37,6 +37,8 @@ Recent product/UX references:
   Monte Carlo, RL, and monthly journal review references.
 - `decisions/2026-06-02-ziadfrancis-references.md` - ZiadFrancis references for
   liquidity sweep, sentiment, chart patterns, RL, genetic optimization, and transformers.
+- `decisions/2026-06-02-fvg-notebook-broker-csv.md` - local FVG notebook and broker CSV
+  ideas integrated into loader and FVG body-strength filtering.
 
 Future optional layer:
 
