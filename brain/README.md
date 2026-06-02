@@ -35,6 +35,8 @@ Recent product/UX references:
   reference for dashboard, watchlist, alerts, and asset detail pages.
 - `decisions/2026-06-01-quant-ml-journal-review-references.md` - quant ML, Markov,
   Monte Carlo, RL, and monthly journal review references.
+- `decisions/2026-06-02-ziadfrancis-references.md` - ZiadFrancis references for
+  liquidity sweep, sentiment, chart patterns, RL, genetic optimization, and transformers.
 
 Future optional layer:
 

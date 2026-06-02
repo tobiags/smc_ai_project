@@ -409,6 +409,40 @@ See: `docs/roadmap-quant-ml-journal-review-references.md`
 
 ---
 
+## 14. ZiadFrancis References — SMC, Sentiment, RL, Génétique, Transformers
+
+Decision: accepted as future references.
+
+Repositories:
+
+- `ZiadFrancis/BreakOutLiquiditySweep`
+- `ZiadFrancis/NewsSentimentScanner`
+- `ZiadFrancis/AscendingTrianglesBacktest`
+- `ZiadFrancis/ReinforcementTrading_Part_1`
+- `ZiadFrancis/Genetics_Trading_Part_1`
+- `ZiadFrancis/Transformers_Trading_01`
+
+Roles:
+
+- `BreakOutLiquiditySweep`: closest to SMC; compare liquidity sweep and wick-only break logic
+- `NewsSentimentScanner`: future News/Macro Analyst reference
+- `AscendingTrianglesBacktest`: future non-SMC `StrategyProfile` example
+- `ReinforcementTrading_Part_1`: lightweight RL reference, simpler than TradeMaster
+- `Genetics_Trading_Part_1`: genetic optimization / ARIS reference under strict anti-overfitting rules
+- `Transformers_Trading_01`: Forex sequence-modeling research reference
+
+Boundaries:
+
+- none enters Phase 1 implementation
+- no repo replaces WinWorld SMC rules
+- no RL/Transformer/genetic model gets MT5 live access
+- no generated strategy can bypass SMC invalidation rules
+- treat external `pickle` / `dill` files as unsafe unless deliberately reviewed
+
+See: `docs/roadmap-ziadfrancis-references.md`
+
+---
+
 ## Roadmap Placement
 
 ```text
@@ -429,12 +463,14 @@ Phase 2+
 Phase 2.5
   Markov/HMM Regime Intelligence
   Markov transition matrix + Monte Carlo research
+  ZiadFrancis BreakOutLiquiditySweep comparison for sweep/liquidity logic
   Signal Ensemble / Conviction Engine
   Indicator taxonomy and codependence research references
 
 Phase 3
   TradingView MCP + TradingAgents-style real-time decision assistant
   OpenStock-inspired alerts for SMC setup monitoring
+  ZiadFrancis NewsSentimentScanner inspiration for News/Macro Analyst
 
 Phase 4
   ARIS weekly/night research + Qlib/Kronos/TradingEconomics research lab
@@ -442,6 +478,7 @@ Phase 4
   LLM Wiki / Knowledge Wiki evaluation for research memory
   mlfinlab-style validation, overfitting checks, and bet sizing research
   Stefan Jansen ML workflow + Q-Fin / Financial Engineering risk simulation references
+  ZiadFrancis Genetics / Transformers / lightweight RL as research references
 
 Phase 4+
   Incremental knowledge indexing
@@ -451,4 +488,5 @@ Phase 4+
 Phase 5
   AI-Trader-inspired sharing/signal layer
   OpenStock-inspired product UX for watchlist, alerts, and asset detail pages
+  AscendingTrianglesBacktest as example future non-SMC StrategyProfile
 ```
