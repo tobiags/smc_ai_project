@@ -39,6 +39,8 @@ Recent product/UX references:
   liquidity sweep, sentiment, chart patterns, RL, genetic optimization, and transformers.
 - `decisions/2026-06-02-fvg-notebook-broker-csv.md` - local FVG notebook and broker CSV
   ideas integrated into loader and FVG body-strength filtering.
+- `decisions/2026-06-04-market-structure-trendline-backtesting-references.md` - market
+  structure, dynamic trendline, multi-timeframe backtesting, and stop-loss references.
 
 Future optional layer:
 

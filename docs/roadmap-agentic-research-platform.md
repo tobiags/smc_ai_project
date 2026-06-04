@@ -443,6 +443,39 @@ See: `docs/roadmap-ziadfrancis-references.md`
 
 ---
 
+## 15. Market Structure / Trendline / Backtesting References
+
+Decision: accepted as implementation and architecture references.
+
+Repositories:
+
+- `neurotrader888/market-structure`
+- `neurotrader888/TrendLineAutomation`
+- `ChadThackray/price-trends-2023`
+- `ChadThackray/multi-timeframe-backtesting-py-2022`
+- `ChadThackray/backtesting-py-stop-losses`
+- `ChadThackray/backtesting.py-speed-2025`
+
+Roles:
+
+- market structure labels: HH, HL, LH, LL
+- future BOS/ChoCh support
+- dynamic trendline quality scoring over periods such as 7 to 30 candles
+- multi-timeframe D1/H4/M15 backtesting references
+- stop-loss and trade management test references
+- performance ideas for heavier backtest runs
+
+Boundaries:
+
+- references only, not direct dependencies
+- no trendline can override WinWorld SMC invalidation
+- no direct code copy without license review
+- `backtesting.py-speed-2025` is a performance reference, not a required Phase 1 dependency
+
+See: `docs/roadmap-market-structure-trendline-backtesting-references.md`
+
+---
+
 ## Roadmap Placement
 
 ```text
@@ -453,12 +486,14 @@ Phase 2
   Real historical data + serious backtests + VPS dashboard
   OpenStock-inspired watchlist and asset pages
   Journal Review initial on serious backtest and demo-forward results
+  Multi-timeframe and stop-loss backtesting patterns from ChadThackray references
 
 Phase 2+
   Project Memory / Knowledge Layer
   - brain/ markdown repo
   - later: GBrain index/search
   - optional LLM Wiki trial when sources/results justify it
+  Dynamic trendline dashboard overlays and confluence filters
 
 Phase 2.5
   Markov/HMM Regime Intelligence
@@ -466,6 +501,7 @@ Phase 2.5
   ZiadFrancis BreakOutLiquiditySweep comparison for sweep/liquidity logic
   Signal Ensemble / Conviction Engine
   Indicator taxonomy and codependence research references
+  Market structure and trendline references for reusable strategy infrastructure
 
 Phase 3
   TradingView MCP + TradingAgents-style real-time decision assistant
