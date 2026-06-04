@@ -27,3 +27,12 @@ def test_backtest_result_to_dict_is_json_ready():
     assert data["trades"][0]["strategy_id"] == "winworld_smc_v1"
     assert isinstance(data["trades"], list)
     assert isinstance(data["equity_curve"], list)
+    assert isinstance(data["analyses"], list)
+
+
+def test_run_sample_backtest_includes_decision_analysis_log():
+    result = run_sample_backtest(symbol="EURUSD", bars=160)
+
+    assert result.analyses
+    assert all("decision" in analysis for analysis in result.analyses)
+    assert all("rejection_reason" in analysis for analysis in result.analyses)

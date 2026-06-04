@@ -14,11 +14,32 @@ def run_sample_backtest(symbol: str = "EURUSD", bars: int = 240) -> BacktestResu
     balance = 10_000.0
     equity_curve: list[dict[str, float | str]] = []
     trades: list[dict[str, object]] = []
+    analyses: list[dict[str, object]] = []
 
     for trade_index, signal in enumerate(signals, start=1):
         pnl = 100.0 if trade_index % 3 != 0 else -20.0
         balance += pnl
         trades.append({**signal.to_dict(), "pnl": pnl, "status": "closed"})
+        analyses.append(
+            {
+                "decision": {
+                    "symbol": signal.symbol,
+                    "timestamp": signal.timestamp,
+                    "accepted": True,
+                    "direction": signal.direction,
+                    "schema": signal.schema,
+                    "reason": "sample signal accepted",
+                    "poi": None,
+                },
+                "levels": {
+                    "entry": signal.entry,
+                    "stop_loss": signal.stop_loss,
+                    "take_profit": signal.take_profit,
+                    "rr": signal.rr,
+                },
+                "rejection_reason": None,
+            }
+        )
         equity_curve.append({"timestamp": signal.timestamp, "equity": round(balance, 2)})
 
     wins = [trade for trade in trades if float(trade["pnl"]) > 0]
@@ -45,4 +66,5 @@ def run_sample_backtest(symbol: str = "EURUSD", bars: int = 240) -> BacktestResu
         kpis=kpis,
         equity_curve=equity_curve,
         trades=trades,
+        analyses=analyses,
     )

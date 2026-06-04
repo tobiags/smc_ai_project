@@ -20,6 +20,7 @@ def read_result(path: str | Path) -> BacktestResult:
         kpis=data["kpis"],
         equity_curve=data["equity_curve"],
         trades=data["trades"],
+        analyses=data.get("analyses", []),
     )
 
 
