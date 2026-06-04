@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from smc_ai.backtest.models import BacktestResult
 from smc_ai.core.signals import detect_initial_signals
 from smc_ai.core.strategy_profiles import get_strategy_profile
+from smc_ai.core.trading_math import expectancy_r
 from smc_ai.reports.sample_results import make_sample_ohlcv
 
 
@@ -47,6 +48,10 @@ def run_sample_backtest(symbol: str = "EURUSD", bars: int = 240) -> BacktestResu
     gross_profit = sum(float(trade["pnl"]) for trade in wins)
     gross_loss = abs(sum(float(trade["pnl"]) for trade in losses))
     profit_factor = gross_profit / gross_loss if gross_loss else gross_profit
+    average_win = gross_profit / len(wins) if wins else 0.0
+    average_loss = gross_loss / len(losses) if losses else 0.0
+    average_loss = average_loss if average_loss > 0 else 1.0
+    win_rate = len(wins) / len(trades) if trades else 0.0
 
     kpis: dict[str, float | int | str] = {
         "strategy_id": profile.strategy_id,
@@ -54,8 +59,15 @@ def run_sample_backtest(symbol: str = "EURUSD", bars: int = 240) -> BacktestResu
         "starting_balance": 10_000,
         "ending_balance": round(balance, 2),
         "total_trades": len(trades),
-        "win_rate": round(len(wins) / len(trades), 4) if trades else 0.0,
+        "win_rate": round(win_rate, 4),
         "profit_factor": round(profit_factor, 2),
+        "expectancy_r": expectancy_r(
+            win_rate=win_rate,
+            average_win_r=average_win / average_loss,
+            average_loss_r=1.0,
+        )
+        if trades
+        else 0.0,
         "max_drawdown": 0.02,
     }
 

@@ -13,6 +13,7 @@ def test_run_sample_backtest_returns_result_with_kpis():
     assert result.kpis["total_trades"] > 0
     assert "win_rate" in result.kpis
     assert "profit_factor" in result.kpis
+    assert "expectancy_r" in result.kpis
     assert result.equity_curve
     assert result.trades
 

@@ -16,6 +16,12 @@ from smc_ai.core.poi import (
     zones_from_order_blocks,
 )
 from smc_ai.core.risk import TradeLevels, calculate_trade_levels
+from smc_ai.core.trading_math import (
+    breakeven_win_rate,
+    expectancy_r,
+    fixed_risk_position_size,
+    recovery_gain_required,
+)
 
 __all__ = [
     "calculate_fvg",
@@ -33,6 +39,10 @@ __all__ = [
     "PoiZone",
     "TradeLevels",
     "calculate_trade_levels",
+    "breakeven_win_rate",
+    "expectancy_r",
+    "fixed_risk_position_size",
+    "recovery_gain_required",
     "zones_from_fvg",
     "zones_from_order_blocks",
 ]

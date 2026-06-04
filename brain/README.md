@@ -41,6 +41,8 @@ Recent product/UX references:
   ideas integrated into loader and FVG body-strength filtering.
 - `decisions/2026-06-04-market-structure-trendline-backtesting-references.md` - market
   structure, dynamic trendline, multi-timeframe backtesting, and stop-loss references.
+- `decisions/2026-06-04-trading-math-expectancy-risk.md` - expectancy, break-even
+  win rate, recovery math, variance discipline, and fixed-risk position sizing.
 
 Future optional layer:
 
