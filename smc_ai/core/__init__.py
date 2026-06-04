@@ -14,6 +14,7 @@ from smc_ai.core.poi import (
     zones_from_fvg,
     zones_from_order_blocks,
 )
+from smc_ai.core.risk import TradeLevels, calculate_trade_levels
 
 __all__ = [
     "calculate_fvg",
@@ -26,6 +27,8 @@ __all__ = [
     "label_market_structure",
     "latest_structure_bias",
     "PoiZone",
+    "TradeLevels",
+    "calculate_trade_levels",
     "zones_from_fvg",
     "zones_from_order_blocks",
 ]
