@@ -5,6 +5,8 @@ from smc_ai.reports.sample_results import make_sample_ohlcv
 def test_signal_rr_calculation():
     signal = Signal(
         symbol="EURUSD",
+        strategy_id="winworld_smc_v1",
+        strategy_version="0.1",
         timestamp="2026-01-01T08:00:00",
         direction="buy",
         schema="sample",
@@ -20,6 +22,8 @@ def test_signal_rr_calculation():
 def test_signal_to_dict_includes_rr():
     signal = Signal(
         symbol="EURUSD",
+        strategy_id="winworld_smc_v1",
+        strategy_version="0.1",
         timestamp="2026-01-01T08:00:00",
         direction="sell",
         schema="sample",
@@ -32,6 +36,7 @@ def test_signal_to_dict_includes_rr():
     data = signal.to_dict()
 
     assert data["direction"] == "sell"
+    assert data["strategy_id"] == "winworld_smc_v1"
     assert data["rr"] == 5.0
 
 
@@ -42,6 +47,7 @@ def test_detect_initial_signals_returns_only_min_rr_signals():
 
     assert signals
     assert all(signal.rr >= 5.0 for signal in signals)
+    assert all(signal.strategy_id == "winworld_smc_v1" for signal in signals)
 
 
 def test_detect_initial_signals_uses_trade_sessions_only():

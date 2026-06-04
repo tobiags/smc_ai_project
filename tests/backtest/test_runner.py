@@ -8,6 +8,8 @@ def test_run_sample_backtest_returns_result_with_kpis():
     assert isinstance(result, BacktestResult)
     assert result.symbol == "EURUSD"
     assert result.run_id.startswith("sample-EURUSD-")
+    assert result.kpis["strategy_id"] == "winworld_smc_v1"
+    assert result.kpis["strategy_version"] == "0.1"
     assert result.kpis["total_trades"] > 0
     assert "win_rate" in result.kpis
     assert "profit_factor" in result.kpis
@@ -22,5 +24,6 @@ def test_backtest_result_to_dict_is_json_ready():
 
     assert data["run_id"] == result.run_id
     assert data["symbol"] == "EURUSD"
+    assert data["trades"][0]["strategy_id"] == "winworld_smc_v1"
     assert isinstance(data["trades"], list)
     assert isinstance(data["equity_curve"], list)

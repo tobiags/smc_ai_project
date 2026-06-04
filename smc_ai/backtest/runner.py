@@ -2,12 +2,14 @@ from datetime import UTC, datetime
 
 from smc_ai.backtest.models import BacktestResult
 from smc_ai.core.signals import detect_initial_signals
+from smc_ai.core.strategy_profiles import get_strategy_profile
 from smc_ai.reports.sample_results import make_sample_ohlcv
 
 
 def run_sample_backtest(symbol: str = "EURUSD", bars: int = 240) -> BacktestResult:
+    profile = get_strategy_profile("winworld_smc_v1")
     df = make_sample_ohlcv(bars)
-    signals = detect_initial_signals(symbol=symbol, df=df, min_rr=5.0)
+    signals = detect_initial_signals(symbol=symbol, df=df, min_rr=profile.min_rr)
 
     balance = 10_000.0
     equity_curve: list[dict[str, float | str]] = []
@@ -26,6 +28,8 @@ def run_sample_backtest(symbol: str = "EURUSD", bars: int = 240) -> BacktestResu
     profit_factor = gross_profit / gross_loss if gross_loss else gross_profit
 
     kpis: dict[str, float | int | str] = {
+        "strategy_id": profile.strategy_id,
+        "strategy_version": profile.version,
         "starting_balance": 10_000,
         "ending_balance": round(balance, 2),
         "total_trades": len(trades),
