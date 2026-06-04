@@ -3,8 +3,11 @@ from dataclasses import dataclass
 import pandas as pd
 
 from smc_ai.core.entry_decision import EntryDecision, evaluate_entry_decision
+from smc_ai.core.market_structure import detect_structure_events
 from smc_ai.core.poi import PoiZone
 from smc_ai.core.risk import TradeLevels, calculate_trade_levels
+from smc_ai.core.sessions import is_trade_allowed
+from smc_ai.data.models import validate_ohlcv
 
 
 @dataclass(frozen=True)
@@ -51,3 +54,49 @@ def build_entry_analysis(
         return EntryAnalysis(decision=decision, levels=None, rejection_reason=str(exc))
 
     return EntryAnalysis(decision=decision, levels=levels, rejection_reason=None)
+
+
+def scan_latest_m15_entry(
+    symbol: str,
+    df_m15: pd.DataFrame,
+    bias_direction: str,
+    confirmed_pois: list[PoiZone],
+    min_rr: float,
+    stop_buffer: float = 0.0,
+    structure: pd.DataFrame | None = None,
+) -> EntryAnalysis:
+    normalized = validate_ohlcv(df_m15)
+    events = detect_structure_events(normalized, structure=structure)
+    latest_event = _latest_actionable_event(events)
+    timestamp = normalized.index[-1]
+
+    if latest_event is None:
+        decision = EntryDecision(
+            symbol=symbol,
+            timestamp=timestamp.isoformat(),
+            accepted=False,
+            direction=None,
+            schema=None,
+            reason="no recent structure event",
+            poi=None,
+        )
+        return EntryAnalysis(decision=decision, levels=None, rejection_reason=decision.reason)
+
+    return build_entry_analysis(
+        symbol=symbol,
+        timestamp=latest_event.name,
+        entry_price=float(normalized.loc[latest_event.name, "close"]),
+        bias_direction=bias_direction,
+        session_allowed=is_trade_allowed(latest_event.name),
+        structure_event=latest_event,
+        confirmed_pois=confirmed_pois,
+        min_rr=min_rr,
+        stop_buffer=stop_buffer,
+    )
+
+
+def _latest_actionable_event(events: pd.DataFrame) -> pd.Series | None:
+    candidates = events.dropna(subset=["Event"])
+    if candidates.empty:
+        return None
+    return candidates.iloc[-1]

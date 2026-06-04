@@ -1,7 +1,7 @@
 """Core SMC analysis modules."""
 
 from smc_ai.core.entry_decision import EntryDecision, evaluate_entry_decision
-from smc_ai.core.entry_pipeline import EntryAnalysis, build_entry_analysis
+from smc_ai.core.entry_pipeline import EntryAnalysis, build_entry_analysis, scan_latest_m15_entry
 from smc_ai.core.indicators import calculate_fvg, calculate_swing_highs_lows
 from smc_ai.core.market_structure import (
     detect_structure_events,
@@ -26,6 +26,7 @@ __all__ = [
     "EntryAnalysis",
     "evaluate_entry_decision",
     "build_entry_analysis",
+    "scan_latest_m15_entry",
     "filter_zones_by_confluence",
     "label_market_structure",
     "latest_structure_bias",
