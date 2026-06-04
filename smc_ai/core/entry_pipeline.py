@@ -16,6 +16,13 @@ class EntryAnalysis:
     levels: TradeLevels | None
     rejection_reason: str | None
 
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "decision": self.decision.to_dict(),
+            "levels": self.levels.to_dict() if self.levels is not None else None,
+            "rejection_reason": self.rejection_reason,
+        }
+
 
 def build_entry_analysis(
     symbol: str,

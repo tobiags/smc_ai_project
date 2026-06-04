@@ -134,3 +134,25 @@ def test_scan_latest_m15_entry_rejects_when_no_structure_event_exists():
 
     assert analysis.decision.accepted is False
     assert analysis.rejection_reason == "no recent structure event"
+
+
+def test_entry_analysis_to_dict_is_dashboard_ready():
+    poi = PoiZone("OB", "bullish", top=1.120, bottom=1.100, source_index="m15")
+
+    analysis = build_entry_analysis(
+        symbol="EURUSD",
+        timestamp=pd.Timestamp("2026-01-01 08:00:00"),
+        entry_price=1.125,
+        bias_direction="bullish",
+        session_allowed=True,
+        structure_event=_event("BOS", "bullish"),
+        confirmed_pois=[poi],
+        min_rr=5.0,
+    )
+
+    data = analysis.to_dict()
+
+    assert data["decision"]["accepted"] is True
+    assert data["decision"]["poi"]["kind"] == "OB"
+    assert data["levels"]["rr"] == 5.0
+    assert data["rejection_reason"] is None

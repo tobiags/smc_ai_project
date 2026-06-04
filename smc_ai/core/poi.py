@@ -15,6 +15,15 @@ class PoiZone:
     def overlaps(self, other: "PoiZone") -> bool:
         return self.bottom <= other.top and other.bottom <= self.top
 
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "kind": self.kind,
+            "direction": self.direction,
+            "top": self.top,
+            "bottom": self.bottom,
+            "source_index": str(self.source_index),
+        }
+
 
 def zones_from_order_blocks(order_blocks: pd.DataFrame) -> list[PoiZone]:
     _require_columns(order_blocks, {"OB", "Top", "Bottom"})

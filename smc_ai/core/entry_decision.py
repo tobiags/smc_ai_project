@@ -15,6 +15,17 @@ class EntryDecision:
     reason: str
     poi: PoiZone | None
 
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "symbol": self.symbol,
+            "timestamp": self.timestamp,
+            "accepted": self.accepted,
+            "direction": self.direction,
+            "schema": self.schema,
+            "reason": self.reason,
+            "poi": self.poi.to_dict() if self.poi is not None else None,
+        }
+
 
 def evaluate_entry_decision(
     symbol: str,

@@ -10,6 +10,14 @@ class TradeLevels:
     take_profit: float
     rr: float
 
+    def to_dict(self) -> dict[str, float]:
+        return {
+            "entry": self.entry,
+            "stop_loss": self.stop_loss,
+            "take_profit": self.take_profit,
+            "rr": self.rr,
+        }
+
 
 def calculate_trade_levels(
     entry: float,
