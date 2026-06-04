@@ -2,6 +2,7 @@ from dataclasses import asdict, dataclass
 
 import pandas as pd
 
+from smc_ai.core.entry_pipeline import EntryAnalysis
 from smc_ai.core.sessions import is_trade_allowed
 from smc_ai.core.strategy_profiles import get_strategy_profile
 
@@ -60,3 +61,28 @@ def detect_initial_signals(symbol: str, df: pd.DataFrame, min_rr: float) -> list
             signals.append(signal)
 
     return signals
+
+
+def signal_from_entry_analysis(
+    analysis: EntryAnalysis,
+    strategy_id: str,
+    strategy_version: str,
+    confidence: float = 0.70,
+) -> Signal:
+    if not analysis.decision.accepted or analysis.levels is None:
+        raise ValueError("signal requires an accepted analysis with trade levels")
+    if analysis.decision.direction is None or analysis.decision.schema is None:
+        raise ValueError("signal requires decision direction and schema")
+
+    return Signal(
+        symbol=analysis.decision.symbol,
+        strategy_id=strategy_id,
+        strategy_version=strategy_version,
+        timestamp=analysis.decision.timestamp,
+        direction=analysis.decision.direction,
+        schema=analysis.decision.schema,
+        entry=analysis.levels.entry,
+        stop_loss=analysis.levels.stop_loss,
+        take_profit=analysis.levels.take_profit,
+        confidence=confidence,
+    )
