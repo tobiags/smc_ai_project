@@ -91,3 +91,18 @@ def test_multitf_analysis_to_dict_is_serialisable():
     assert "h4_zones" in data
     assert "m15_entry" in data
     assert "idm_confirmed" in data
+    assert "m15_ifc" in data       # Phase 5
+    assert "b4_entry" in data      # Phase 5
+
+
+def test_multitf_analysis_exposes_ifc_and_b4():
+    df_d1 = _ohlcv_trending_up(60)
+    df_h4 = _ohlcv_flat(100, freq="4h")
+    df_m15 = _ohlcv_flat(200, freq="15min")
+
+    result = run_multitf_analysis("EURUSD", df_d1, df_h4, df_m15)
+
+    # m15_ifc is None or a dict with body_ratio
+    assert result.m15_ifc is None or "body_ratio" in result.m15_ifc
+    # b4_entry is None or a dict with schema/direction keys
+    assert result.b4_entry is None or result.b4_entry["schema"] == "b4_ifc_sweep_extreme"
