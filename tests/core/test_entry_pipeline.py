@@ -136,6 +136,72 @@ def test_scan_latest_m15_entry_rejects_when_no_structure_event_exists():
     assert analysis.rejection_reason == "no recent structure event"
 
 
+def test_scan_latest_m15_entry_ignores_sweep_events():
+    """SWEEP events must not be picked as the actionable event — only BOS/CHOCH qualify.
+
+    Setup: the last candle's wick exceeds the only registered swing high (1.12)
+    but its close stays below it → produces a SWEEP, not a BOS.
+    No BOS/CHOCH is present in the event log, so the pipeline must reject.
+    """
+    df = _ohlcv(
+        highs=[1.11, 1.11, 1.11, 1.11, 1.125],   # last wick exceeds 1.12
+        lows=[1.09, 1.09, 1.09, 1.09, 1.110],
+        closes=[1.10, 1.10, 1.10, 1.10, 1.115],   # all closes stay below 1.12
+    )
+    # Only one swing point: a high at 1.12 registered at index[3].
+    # Indices 0-2 have no swings, so no close can trigger a BOS before the sweep candle.
+    structure = pd.DataFrame(
+        {
+            "HighLow": [0, 0, 0, 1, 0],
+            "Level": [pd.NA, pd.NA, pd.NA, 1.12, pd.NA],
+            "Structure": [pd.NA, pd.NA, pd.NA, "H", pd.NA],
+        },
+        index=df.index,
+    )
+
+    analysis = scan_latest_m15_entry(
+        symbol="EURUSD",
+        df_m15=df,
+        bias_direction="bullish",
+        confirmed_pois=[PoiZone("OB", "bullish", top=1.120, bottom=1.100, source_index="m15")],
+        min_rr=5.0,
+        structure=structure,
+    )
+
+    assert analysis.decision.accepted is False
+    assert analysis.rejection_reason == "no recent structure event"
+
+
+def test_scan_latest_m15_entry_rejects_when_idm_not_confirmed():
+    """idm_confirmed=False must propagate all the way to the decision."""
+    df = _ohlcv(
+        highs=[1.10, 1.08, 1.12, 1.10, 1.13],
+        lows=[1.06, 1.05, 1.09, 1.08, 1.11],
+        closes=[1.08, 1.07, 1.11, 1.09, 1.125],
+    )
+    structure = pd.DataFrame(
+        {
+            "HighLow": [1, -1, 1, -1, 0],
+            "Level": [1.10, 1.05, 1.12, 1.08, pd.NA],
+            "Structure": ["H", "L", "HH", "HL", pd.NA],
+        },
+        index=df.index,
+    )
+
+    analysis = scan_latest_m15_entry(
+        symbol="EURUSD",
+        df_m15=df,
+        bias_direction="bullish",
+        confirmed_pois=[PoiZone("OB", "bullish", top=1.120, bottom=1.100, source_index="m15")],
+        min_rr=5.0,
+        structure=structure,
+        idm_confirmed=False,
+    )
+
+    assert analysis.decision.accepted is False
+    assert "IDM" in analysis.decision.reason
+
+
 def test_entry_analysis_to_dict_is_dashboard_ready():
     poi = PoiZone("OB", "bullish", top=1.120, bottom=1.100, source_index="m15")
 
