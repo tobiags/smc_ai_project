@@ -4,7 +4,7 @@ from typing import Any
 import pandas as pd
 
 from smc_ai.core.entry_pipeline import EntryAnalysis, scan_latest_m15_entry
-from smc_ai.core.ifc import detect_b4_entry, detect_ifc, latest_ifc
+from smc_ai.core.ifc import detect_b2_entry, detect_b4_entry, detect_ifc, latest_ifc
 from smc_ai.core.idm import detect_idm, latest_confirmed_idm
 from smc_ai.core.indicators import calculate_fvg
 from smc_ai.core.market_structure import (
@@ -32,11 +32,10 @@ class MultiTFAnalysis:
     idm_confirmed: bool
     m15_ifc: dict[str, Any] | None
     b4_entry: dict[str, Any] | None
+    b2_entry: dict[str, Any] | None
+    active_schema: str | None  # first active schema: "a1" > "b4" > "b2" > None
 
     def to_dict(self) -> dict[str, object]:
-        b4 = dict(self.b4_entry) if self.b4_entry is not None else None
-        if b4 is not None and "ifc_index" in b4:
-            b4["ifc_index"] = str(b4["ifc_index"])
         return {
             "symbol": self.symbol,
             "d1_bias": self.d1_bias,
@@ -44,8 +43,19 @@ class MultiTFAnalysis:
             "m15_entry": self.m15_entry.to_dict(),
             "idm_confirmed": self.idm_confirmed,
             "m15_ifc": {**self.m15_ifc, "index": str(self.m15_ifc["index"])} if self.m15_ifc else None,
-            "b4_entry": b4,
+            "b4_entry": _serialise_ifc_entry(self.b4_entry),
+            "b2_entry": _serialise_ifc_entry(self.b2_entry),
+            "active_schema": self.active_schema,
         }
+
+
+def _serialise_ifc_entry(entry: dict[str, Any] | None) -> dict[str, Any] | None:
+    if entry is None:
+        return None
+    out = dict(entry)
+    if "ifc_index" in out:
+        out["ifc_index"] = str(out["ifc_index"])
+    return out
 
 
 def run_multitf_analysis(
@@ -99,10 +109,11 @@ def run_multitf_analysis(
         and idm_info["direction"] == d1_bias
     )
 
-    # Step 6 — IFC detection and B4 schema
+    # Step 6 — IFC detection + B4 and B2 schemas
     m15_ifc_df = detect_ifc(m15)
     m15_ifc = latest_ifc(m15_ifc_df)
     b4_entry = detect_b4_entry(m15, m15_ifc_df, m15_structure)
+    b2_entry = detect_b2_entry(m15, m15_ifc_df, idm_result)
 
     # Step 7 — M15 entry scan (schema A1: BOS/ChoCh + IDM + POI)
     m15_entry = scan_latest_m15_entry(
@@ -116,6 +127,16 @@ def run_multitf_analysis(
         idm_confirmed=idm_confirmed,
     )
 
+    # Determine the highest-priority active schema
+    if m15_entry.decision.accepted:
+        active_schema: str | None = "a1"
+    elif b4_entry is not None:
+        active_schema = "b4"
+    elif b2_entry is not None:
+        active_schema = "b2"
+    else:
+        active_schema = None
+
     return MultiTFAnalysis(
         symbol=symbol,
         d1_bias=d1_bias,
@@ -124,4 +145,6 @@ def run_multitf_analysis(
         idm_confirmed=idm_confirmed,
         m15_ifc=m15_ifc,
         b4_entry=b4_entry,
+        b2_entry=b2_entry,
+        active_schema=active_schema,
     )

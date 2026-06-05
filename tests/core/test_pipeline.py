@@ -91,18 +91,34 @@ def test_multitf_analysis_to_dict_is_serialisable():
     assert "h4_zones" in data
     assert "m15_entry" in data
     assert "idm_confirmed" in data
-    assert "m15_ifc" in data       # Phase 5
-    assert "b4_entry" in data      # Phase 5
+    assert "m15_ifc" in data
+    assert "b4_entry" in data
+    assert "b2_entry" in data      # Phase 6
+    assert "active_schema" in data  # Phase 6
 
 
-def test_multitf_analysis_exposes_ifc_and_b4():
+def test_multitf_analysis_exposes_ifc_b4_b2_and_active_schema():
     df_d1 = _ohlcv_trending_up(60)
     df_h4 = _ohlcv_flat(100, freq="4h")
     df_m15 = _ohlcv_flat(200, freq="15min")
 
     result = run_multitf_analysis("EURUSD", df_d1, df_h4, df_m15)
 
-    # m15_ifc is None or a dict with body_ratio
     assert result.m15_ifc is None or "body_ratio" in result.m15_ifc
-    # b4_entry is None or a dict with schema/direction keys
     assert result.b4_entry is None or result.b4_entry["schema"] == "b4_ifc_sweep_extreme"
+    assert result.b2_entry is None or result.b2_entry["schema"] == "b2_ifc_sweep_idm"
+    assert result.active_schema in {"a1", "b4", "b2", None}
+
+
+def test_multitf_analysis_active_schema_is_a1_when_entry_accepted():
+    """active_schema must be 'a1' whenever m15_entry is accepted."""
+    df_d1 = _ohlcv_trending_up(60)
+    df_h4 = _ohlcv_flat(100, freq="4h")
+    df_m15 = _ohlcv_flat(200, freq="15min")
+
+    result = run_multitf_analysis("EURUSD", df_d1, df_h4, df_m15)
+
+    if result.m15_entry.decision.accepted:
+        assert result.active_schema == "a1"
+    else:
+        assert result.active_schema in {"b4", "b2", None}
