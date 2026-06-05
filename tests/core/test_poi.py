@@ -68,6 +68,26 @@ def test_filter_zones_by_confluence_keeps_same_direction_overlapping_zone():
     assert confirmed == [m15_zone]
 
 
+def test_zones_from_order_blocks_skips_mitigated_ob():
+    index = pd.date_range("2026-01-01 07:00:00", periods=3, freq="15min")
+    order_blocks = pd.DataFrame(
+        {
+            "OB": [1, 1, 0],
+            "Top": [1.120, 1.130, pd.NA],
+            "Bottom": [1.100, 1.110, pd.NA],
+            "SourceFVGIndex": [index[1], index[2], pd.NA],
+            # first OB is mitigated, second is fresh
+            "MitigatedIndex": [index[2], pd.NA, pd.NA],
+        },
+        index=index,
+    )
+
+    zones = zones_from_order_blocks(order_blocks)
+
+    assert len(zones) == 1
+    assert zones[0].top == 1.130  # only the unmitigated OB
+
+
 def test_filter_zones_by_confluence_rejects_opposite_direction_or_no_overlap():
     m15_zone = PoiZone("OB", "bullish", top=1.120, bottom=1.100, source_index="m15")
     opposite = PoiZone("FVG", "bearish", top=1.130, bottom=1.110, source_index="h4")

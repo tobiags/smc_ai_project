@@ -28,10 +28,13 @@ class PoiZone:
 def zones_from_order_blocks(order_blocks: pd.DataFrame) -> list[PoiZone]:
     _require_columns(order_blocks, {"OB", "Top", "Bottom"})
     zones: list[PoiZone] = []
+    has_mitigation = "MitigatedIndex" in order_blocks.columns
 
     for index, row in order_blocks.iterrows():
         direction = _direction_from_int(row["OB"])
         if direction is None or pd.isna(row["Top"]) or pd.isna(row["Bottom"]):
+            continue
+        if has_mitigation and not pd.isna(row["MitigatedIndex"]):
             continue
         zones.append(
             PoiZone(
