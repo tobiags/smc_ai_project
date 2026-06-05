@@ -80,8 +80,10 @@ def run_multitf_analysis(
     m15_events = detect_structure_events(m15, structure=m15_structure)
     idm_result = detect_idm(m15_events, lookahead=20)
     idm_info = latest_confirmed_idm(idm_result)
-    idm_confirmed = idm_info is not None and idm_info["direction"] == (
-        "bullish" if d1_bias == "bullish" else "bearish"
+    idm_confirmed = (
+        idm_info is not None
+        and d1_bias in {"bullish", "bearish"}
+        and idm_info["direction"] == d1_bias
     )
 
     # Step 5 — M15 entry scan
