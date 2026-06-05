@@ -1,3 +1,5 @@
+from typing import Any
+
 import pandas as pd
 
 from smc_ai.data.models import validate_ohlcv
@@ -40,6 +42,66 @@ def latest_ifc(ifc: pd.DataFrame) -> dict[str, object] | None:
         "index": hits.index[-1],
         "body_ratio": float(row["BodyRatio"]),
     }
+
+
+def detect_b4_entry(
+    df: pd.DataFrame,
+    ifc: pd.DataFrame,
+    structure: pd.DataFrame,
+) -> dict[str, Any] | None:
+    """Detect schema B4: IFC aggressively sweeps a swing extreme → immediate entry.
+
+    WinWorld B4: an IFC candle whose wick exceeds the most recent swing high or low
+    but whose close stays on the opposite side → liquidity sweep complete, enter immediately.
+
+    Args:
+        df:        OHLCV data (same index as ifc and structure).
+        ifc:       DataFrame from detect_ifc().
+        structure: DataFrame from label_market_structure() with HighLow and Level columns.
+
+    Returns dict with keys: schema, direction, entry, stop, ifc_index, swept_level.
+    Returns None if no B4 setup is found.
+    """
+    ifc_hits = ifc[ifc["IFC"]]
+    if ifc_hits.empty:
+        return None
+
+    ifc_idx = ifc_hits.index[-1]
+    ifc_candle = df.loc[ifc_idx]
+
+    # Consider swing points strictly before the IFC candle
+    prior = structure.loc[:ifc_idx].iloc[:-1]
+
+    highs = prior[(prior["HighLow"] == 1) & prior["Level"].notna()]
+    lows = prior[(prior["HighLow"] == -1) & prior["Level"].notna()]
+
+    if not highs.empty:
+        last_high = float(highs.iloc[-1]["Level"])
+        # Wick swept above swing high, close returned below → bearish B4
+        if float(ifc_candle["high"]) > last_high and float(ifc_candle["close"]) < last_high:
+            return {
+                "schema": "b4_ifc_sweep_extreme",
+                "direction": "sell",
+                "entry": float(ifc_candle["close"]),
+                "stop": float(ifc_candle["high"]),
+                "ifc_index": ifc_idx,
+                "swept_level": last_high,
+            }
+
+    if not lows.empty:
+        last_low = float(lows.iloc[-1]["Level"])
+        # Wick swept below swing low, close returned above → bullish B4
+        if float(ifc_candle["low"]) < last_low and float(ifc_candle["close"]) > last_low:
+            return {
+                "schema": "b4_ifc_sweep_extreme",
+                "direction": "buy",
+                "entry": float(ifc_candle["close"]),
+                "stop": float(ifc_candle["low"]),
+                "ifc_index": ifc_idx,
+                "swept_level": last_low,
+            }
+
+    return None
 
 
 def _compute_body_ratios(df: pd.DataFrame) -> pd.Series:
