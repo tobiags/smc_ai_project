@@ -34,7 +34,11 @@ def evaluate_entry_decision(
     session_allowed: bool,
     structure_event: pd.Series,
     confirmed_pois: list[PoiZone],
+    idm_confirmed: bool = True,
 ) -> EntryDecision:
+    if not idm_confirmed:
+        return _reject(symbol, timestamp, "no confirmed IDM for this leg")
+
     if not session_allowed:
         return _reject(symbol, timestamp, "session is not allowed")
 

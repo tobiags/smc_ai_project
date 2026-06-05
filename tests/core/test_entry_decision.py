@@ -95,3 +95,24 @@ def test_evaluate_entry_decision_rejects_missing_confirmed_poi():
 
     assert decision.accepted is False
     assert decision.reason == "no confirmed POI"
+
+
+def test_evaluate_entry_decision_rejects_when_idm_not_confirmed():
+    poi = PoiZone("OB", "bullish", top=1.120, bottom=1.100, source_index="m15")
+    event = pd.Series({
+        "Event": "BOS", "Direction": "bullish", "BreakType": "close",
+        "BrokenStructure": "HH", "BrokenLevel": 1.12,
+    })
+
+    decision = evaluate_entry_decision(
+        symbol="EURUSD",
+        timestamp=pd.Timestamp("2026-01-01 08:00:00"),
+        bias_direction="bullish",
+        session_allowed=True,
+        structure_event=event,
+        confirmed_pois=[poi],
+        idm_confirmed=False,
+    )
+
+    assert decision.accepted is False
+    assert "IDM" in decision.reason

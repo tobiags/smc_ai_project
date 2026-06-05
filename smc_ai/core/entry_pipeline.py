@@ -34,6 +34,7 @@ def build_entry_analysis(
     confirmed_pois: list[PoiZone],
     min_rr: float,
     stop_buffer: float = 0.0,
+    idm_confirmed: bool = True,
 ) -> EntryAnalysis:
     decision = evaluate_entry_decision(
         symbol=symbol,
@@ -42,6 +43,7 @@ def build_entry_analysis(
         session_allowed=session_allowed,
         structure_event=structure_event,
         confirmed_pois=confirmed_pois,
+        idm_confirmed=idm_confirmed,
     )
     if not decision.accepted:
         return EntryAnalysis(decision=decision, levels=None, rejection_reason=decision.reason)
@@ -71,6 +73,7 @@ def scan_latest_m15_entry(
     min_rr: float,
     stop_buffer: float = 0.0,
     structure: pd.DataFrame | None = None,
+    idm_confirmed: bool = True,
 ) -> EntryAnalysis:
     normalized = validate_ohlcv(df_m15)
     events = detect_structure_events(normalized, structure=structure)
@@ -99,11 +102,12 @@ def scan_latest_m15_entry(
         confirmed_pois=confirmed_pois,
         min_rr=min_rr,
         stop_buffer=stop_buffer,
+        idm_confirmed=idm_confirmed,
     )
 
 
 def _latest_actionable_event(events: pd.DataFrame) -> pd.Series | None:
-    candidates = events.dropna(subset=["Event"])
+    candidates = events[events["Event"].isin({"BOS", "CHOCH"})]
     if candidates.empty:
         return None
     return candidates.iloc[-1]
