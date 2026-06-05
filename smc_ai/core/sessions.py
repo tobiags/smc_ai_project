@@ -2,7 +2,8 @@ import pandas as pd
 
 
 def classify_session(timestamp: pd.Timestamp) -> str:
-    hour = timestamp.hour
+    utc = timestamp.tz_convert("UTC") if timestamp.tzinfo is not None else timestamp
+    hour = utc.hour
     if 1 <= hour < 7:
         return "asia"
     if 7 <= hour < 13:

@@ -60,9 +60,13 @@ def detect_structure_events(
     structure_labels: list[str] = []
 
     for index, candle in normalized.iterrows():
-        event = _detect_break_event(candle, latest_high, latest_low, structure_labels)
+        event, is_choch = _detect_break_event(candle, latest_high, latest_low, structure_labels)
         if event is not None:
             result.loc[index] = event
+            if is_choch:
+                latest_high = None
+                latest_low = None
+                structure_labels.clear()
 
         row = structure.loc[index]
         if int(row["HighLow"]) != 0 and not pd.isna(row["Level"]) and not pd.isna(row["Structure"]):
@@ -116,26 +120,27 @@ def _detect_break_event(
     latest_high: tuple[float, str] | None,
     latest_low: tuple[float, str] | None,
     structure_labels: list[str],
-) -> dict[str, object] | None:
+) -> tuple[dict[str, object] | None, bool]:
+    """Return (event_dict | None, is_choch)."""
     current_bias = _bias_from_labels(structure_labels)
 
     if latest_high is not None:
         high_level, high_label = latest_high
         if float(candle["close"]) > high_level:
-            event = "CHOCH" if current_bias == "bearish" else "BOS"
-            return _event(event, "bullish", "close", high_label, high_level)
+            is_choch = current_bias == "bearish"
+            return _event("CHOCH" if is_choch else "BOS", "bullish", "close", high_label, high_level), is_choch
         if float(candle["high"]) > high_level:
-            return _event("SWEEP", "bullish", "wick", high_label, high_level)
+            return _event("SWEEP", "bullish", "wick", high_label, high_level), False
 
     if latest_low is not None:
         low_level, low_label = latest_low
         if float(candle["close"]) < low_level:
-            event = "CHOCH" if current_bias == "bullish" else "BOS"
-            return _event(event, "bearish", "close", low_label, low_level)
+            is_choch = current_bias == "bullish"
+            return _event("CHOCH" if is_choch else "BOS", "bearish", "close", low_label, low_level), is_choch
         if float(candle["low"]) < low_level:
-            return _event("SWEEP", "bearish", "wick", low_label, low_level)
+            return _event("SWEEP", "bearish", "wick", low_label, low_level), False
 
-    return None
+    return None, False
 
 
 def _bias_from_labels(labels: list[str]) -> str:

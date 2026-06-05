@@ -26,7 +26,24 @@ def detect_order_blocks(df: pd.DataFrame, fvg: pd.DataFrame | None = None) -> pd
         elif source_fvg == -1 and _takes_buy_side_liquidity(candidate, previous):
             _mark_order_block(result, normalized.index[position], -1, candidate, source_fvg_index)
 
+    _mark_mitigated_order_blocks(result, normalized)
     return result
+
+
+def _mark_mitigated_order_blocks(result: pd.DataFrame, df: pd.DataFrame) -> None:
+    ob_indices = result.index[result["OB"] != 0]
+    for ob_index in ob_indices:
+        ob_direction = int(result.loc[ob_index, "OB"])
+        ob_top = float(result.loc[ob_index, "Top"])
+        ob_bottom = float(result.loc[ob_index, "Bottom"])
+        future = df.loc[ob_index:].iloc[1:]
+        for fut_index, candle in future.iterrows():
+            if ob_direction == 1 and float(candle["low"]) <= ob_bottom:
+                result.loc[ob_index, "MitigatedIndex"] = fut_index
+                break
+            if ob_direction == -1 and float(candle["high"]) >= ob_top:
+                result.loc[ob_index, "MitigatedIndex"] = fut_index
+                break
 
 
 def _validate_fvg_frame(df: pd.DataFrame, fvg: pd.DataFrame) -> None:
