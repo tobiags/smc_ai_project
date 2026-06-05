@@ -37,3 +37,16 @@ def test_run_sample_backtest_includes_decision_analysis_log():
     assert result.analyses
     assert all("decision" in analysis for analysis in result.analyses)
     assert all("rejection_reason" in analysis for analysis in result.analyses)
+
+
+def test_run_sample_backtest_uses_real_pnl_simulation():
+    """Trades must carry real simulate_trade outcome, not hard-coded 100/-20 values."""
+    result = run_sample_backtest(symbol="EURUSD", bars=240)
+
+    for trade in result.trades:
+        assert "outcome" in trade
+        assert trade["outcome"] in {"tp", "sl", "open"}
+        assert "pnl_r" in trade
+        pnl_r = float(trade["pnl_r"])
+        # pnl_r must be a genuine R-unit value: TP≈+RR, SL=-1.0, open=0.0
+        assert pnl_r not in {100.0, -20.0}, "found old hard-coded fake PnL"
