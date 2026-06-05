@@ -86,3 +86,39 @@ def signal_from_entry_analysis(
         take_profit=analysis.levels.take_profit,
         confidence=confidence,
     )
+
+
+def generate_signals_from_multitf(
+    symbol: str,
+    df_d1: pd.DataFrame,
+    df_h4: pd.DataFrame,
+    df_m15: pd.DataFrame,
+    strategy_id: str,
+    strategy_version: str,
+    min_rr: float = 5.0,
+    stop_buffer: float = 0.0,
+    confidence: float = 0.70,
+) -> list[Signal]:
+    """Generate real signals using the multi-timeframe WinWorld pipeline."""
+    from smc_ai.core.pipeline import run_multitf_analysis
+
+    analysis = run_multitf_analysis(
+        symbol=symbol,
+        df_d1=df_d1,
+        df_h4=df_h4,
+        df_m15=df_m15,
+        min_rr=min_rr,
+        stop_buffer=stop_buffer,
+    )
+
+    if not analysis.m15_entry.decision.accepted or analysis.m15_entry.levels is None:
+        return []
+
+    return [
+        signal_from_entry_analysis(
+            analysis=analysis.m15_entry,
+            strategy_id=strategy_id,
+            strategy_version=strategy_version,
+            confidence=confidence,
+        )
+    ]
