@@ -25,6 +25,7 @@ def detect_idm(events: pd.DataFrame, lookahead: int = 20) -> pd.DataFrame:
     sweep_mask = events["Event"] == "SWEEP"
     sweep_indices = events.index[sweep_mask]
     all_indices = list(events.index)
+    index_pos = {idx: pos for pos, idx in enumerate(all_indices)}
 
     for sweep_idx in sweep_indices:
         sweep_row = events.loc[sweep_idx]
@@ -40,7 +41,7 @@ def detect_idm(events: pd.DataFrame, lookahead: int = 20) -> pd.DataFrame:
         else:
             continue
 
-        pos = all_indices.index(sweep_idx)
+        pos = index_pos[sweep_idx]
         window_end = min(pos + lookahead + 1, len(all_indices))
         future_slice = events.iloc[pos + 1 : window_end]
 
@@ -70,7 +71,10 @@ def latest_confirmed_idm(idm: pd.DataFrame) -> dict[str, Any] | None:
     }
 
 
-def _find_confirming_event(future: pd.DataFrame, direction: str) -> "pd.Timestamp | None":
+def _find_confirming_event(future: pd.DataFrame, direction: str) -> pd.Timestamp | None:
+    # Only body-close BOS/CHOCH events confirm an IDM — wick sweeps do not qualify.
+    # BrokenLevel in events is the structural swing level that was broken,
+    # which equals the swept liquidity pool price (populated by detect_structure_events).
     for idx, row in future.iterrows():
         event = str(row["Event"]) if not _is_na(row["Event"]) else ""
         row_direction = str(row["Direction"]) if not _is_na(row["Direction"]) else ""
