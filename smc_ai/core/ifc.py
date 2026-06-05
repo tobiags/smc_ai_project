@@ -104,6 +104,67 @@ def detect_b4_entry(
     return None
 
 
+def detect_b2_entry(
+    df: pd.DataFrame,
+    ifc: pd.DataFrame,
+    idm: pd.DataFrame,
+) -> dict[str, Any] | None:
+    """Detect schema B2: IFC sweeps the IDM level → IFC becomes the entry block.
+
+    WinWorld B2: instead of waiting for price to retest a structural OB, the IFC
+    candle that sweeps the IDM swept-level IS the entry zone. Entry on retest of
+    the IFC range (high-low), opposite to the sweep direction.
+
+    Args:
+        df:  OHLCV data.
+        ifc: DataFrame from detect_ifc().
+        idm: DataFrame from detect_idm() with IDM, SweptLevel columns.
+
+    Returns dict with keys: schema, direction, entry_zone_top, entry_zone_bottom,
+    ifc_index, swept_idm_level.  Returns None if no B2 setup found.
+    """
+    ifc_hits = ifc[ifc["IFC"]]
+    if ifc_hits.empty:
+        return None
+
+    confirmed_idm = idm[idm["IDM"] != 0]
+    if confirmed_idm.empty:
+        return None
+
+    ifc_idx = ifc_hits.index[-1]
+    idm_row = confirmed_idm.iloc[-1]
+    swept_level = idm_row["SweptLevel"]
+    if pd.isna(swept_level):
+        return None
+    swept_level = float(swept_level)
+
+    ifc_candle = df.loc[ifc_idx]
+
+    # IFC wick swept ABOVE IDM level (buy-side liquidity grab) → bearish B2 entry
+    if float(ifc_candle["high"]) > swept_level and float(ifc_candle["close"]) < swept_level:
+        return {
+            "schema": "b2_ifc_sweep_idm",
+            "direction": "sell",
+            "entry_zone_top": float(ifc_candle["high"]),
+            "entry_zone_bottom": float(ifc_candle["low"]),
+            "ifc_index": ifc_idx,
+            "swept_idm_level": swept_level,
+        }
+
+    # IFC wick swept BELOW IDM level (sell-side liquidity grab) → bullish B2 entry
+    if float(ifc_candle["low"]) < swept_level and float(ifc_candle["close"]) > swept_level:
+        return {
+            "schema": "b2_ifc_sweep_idm",
+            "direction": "buy",
+            "entry_zone_top": float(ifc_candle["high"]),
+            "entry_zone_bottom": float(ifc_candle["low"]),
+            "ifc_index": ifc_idx,
+            "swept_idm_level": swept_level,
+        }
+
+    return None
+
+
 def _compute_body_ratios(df: pd.DataFrame) -> pd.Series:
     candle_range = df["high"] - df["low"]
     body = (df["close"] - df["open"]).abs()

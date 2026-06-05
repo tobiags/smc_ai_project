@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from smc_ai.core.ifc import detect_b4_entry, detect_ifc, latest_ifc
+from smc_ai.core.ifc import detect_b2_entry, detect_b4_entry, detect_ifc, latest_ifc
 
 
 def _ohlcv(rows: list[tuple[float, float, float, float]]) -> pd.DataFrame:
@@ -140,6 +140,61 @@ def test_detect_b4_entry_returns_none_when_ifc_does_not_sweep():
     result = detect_b4_entry(df, ifc, structure)
 
     assert result is None
+
+
+def _idm_df(idm_values: list[int], swept_levels: list) -> pd.DataFrame:
+    index = pd.date_range("2026-01-01 07:00:00", periods=len(idm_values), freq="15min")
+    return pd.DataFrame({
+        "IDM": idm_values,
+        "SweptLevel": [float(s) if s is not None else pd.NA for s in swept_levels],
+        "ConfirmIndex": [pd.NA] * len(idm_values),
+    }, index=index)
+
+
+def test_detect_b2_entry_bearish_when_ifc_sweeps_above_idm_level():
+    # IDM swept level = 1.12. IFC wick > 1.12, close < 1.12 → bearish B2
+    df = _ohlcv([
+        (1.110, 1.118, 1.105, 1.115),  # not IFC (big body)
+        (1.115, 1.125, 1.112, 1.118),  # IFC: body=0.003/range=0.013 → 0.23 < 0.4
+    ])
+    idm = _idm_df([0, -1], [None, 1.12])
+    ifc = detect_ifc(df)
+
+    result = detect_b2_entry(df, ifc, idm)
+
+    assert result is not None
+    assert result["schema"] == "b2_ifc_sweep_idm"
+    assert result["direction"] == "sell"
+    assert result["entry_zone_top"] == 1.125
+    assert result["swept_idm_level"] == 1.12
+
+
+def test_detect_b2_entry_bullish_when_ifc_sweeps_below_idm_level():
+    # IDM swept level = 1.09. IFC wick < 1.09, close > 1.09 → bullish B2
+    df = _ohlcv([
+        (1.100, 1.108, 1.093, 1.095),
+        (1.095, 1.098, 1.085, 1.092),  # IFC: body=0.003/range=0.013 → 0.23 < 0.4
+    ])
+    idm = _idm_df([0, 1], [None, 1.09])
+    ifc = detect_ifc(df)
+
+    result = detect_b2_entry(df, ifc, idm)
+
+    assert result is not None
+    assert result["direction"] == "buy"
+    assert result["entry_zone_bottom"] == 1.085
+    assert result["swept_idm_level"] == 1.09
+
+
+def test_detect_b2_entry_returns_none_when_no_confirmed_idm():
+    df = _ohlcv([
+        (1.110, 1.118, 1.105, 1.115),
+        (1.115, 1.125, 1.112, 1.118),
+    ])
+    idm = _idm_df([0, 0], [None, None])
+    ifc = detect_ifc(df)
+
+    assert detect_b2_entry(df, ifc, idm) is None
 
 
 def test_detect_b4_entry_returns_none_when_no_ifc():
