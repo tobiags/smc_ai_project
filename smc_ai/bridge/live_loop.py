@@ -28,6 +28,7 @@ from smc_ai.bridge.order_manager import (
     get_open_positions,
     send_order,
 )
+from smc_ai.bridge.signal_writer import clear_signal, write_signal
 from smc_ai.core.pipeline import MultiTFAnalysis, run_multitf_analysis
 from smc_ai.core.risk import TradeLevels
 
@@ -130,6 +131,13 @@ def _analysis_cycle(
     _print_analysis(analysis)
 
     if analysis.active_schema is None:
+        # Write "waiting" state to MT5 panel
+        write_signal(
+            symbol=symbol,
+            d1_bias=analysis.d1_bias or "unknown",
+            idm_confirmed=analysis.idm_confirmed,
+            active_schema=None,
+        )
         print("  → No setup. Waiting for next candle…")
         return
 
@@ -137,8 +145,27 @@ def _analysis_cycle(
     try:
         direction, levels, schema = _resolve_entry(analysis, min_rr)
     except ValueError as exc:
+        write_signal(
+            symbol=symbol,
+            d1_bias=analysis.d1_bias or "unknown",
+            idm_confirmed=analysis.idm_confirmed,
+            active_schema=analysis.active_schema,
+        )
         print(f"  ✗ Cannot resolve entry: {exc}")
         return
+
+    # ── write signal to MT5 panel ─────────────────────────────────────────
+    write_signal(
+        symbol=symbol,
+        d1_bias=analysis.d1_bias or "unknown",
+        idm_confirmed=analysis.idm_confirmed,
+        active_schema=analysis.active_schema,
+        direction=direction,
+        entry=levels.entry,
+        stop_loss=levels.stop_loss,
+        take_profit=levels.take_profit,
+        schema=schema,
+    )
 
     _print_signal(direction, levels, schema)
 
