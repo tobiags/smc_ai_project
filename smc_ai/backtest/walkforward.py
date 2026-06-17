@@ -5,7 +5,15 @@ import pandas as pd
 from smc_ai.backtest.models import BacktestResult
 from smc_ai.backtest.simulator import simulate_trade
 from smc_ai.core.pipeline import run_multitf_analysis
-from smc_ai.core.trading_math import expectancy_r
+from smc_ai.core.trading_math import (
+    expectancy_r,
+    half_kelly,
+    kelly_criterion,
+    risk_of_ruin,
+    signal_to_noise,
+    std_dev_r,
+    validation_progress,
+)
 
 _RISK_UNIT = 100.0  # dollars per 1R
 
@@ -127,18 +135,47 @@ def _compute_kpis(trades: list[dict[str, object]], ending_balance: float) -> dic
         eq_values.append(eq_values[-1] + float(t["pnl"]))
     max_dd = _max_drawdown(eq_values)
 
+    ev = (
+        expectancy_r(
+            win_rate=win_rate,
+            average_win_r=average_win_r,
+            average_loss_r=average_loss_r if average_loss_r > 0 else 1.0,
+        )
+        if pnl_r_list and wins_r
+        else 0.0
+    )
+
+    rr_ratio = average_win_r / average_loss_r if average_loss_r > 0 else 0.0
+    kelly_pct  = kelly_criterion(win_rate, rr_ratio)
+    hkelly_pct = half_kelly(win_rate, rr_ratio)
+
+    # n_units = account / risk_per_trade; default: $10,000 at 1% = 100 units
+    ror = risk_of_ruin(win_rate, rr_ratio, n_units=100)
+
+    sd    = std_dev_r(pnl_r_list)
+    stn   = signal_to_noise(pnl_r_list)
+    valid = validation_progress(len(trades), win_rate if win_rate > 0 else 0.5)
+
     return {
         "starting_balance": 10_000,
         "ending_balance": round(ending_balance, 2),
         "total_trades": len(trades),
         "win_rate": round(win_rate, 4),
+        "avg_win_r": round(average_win_r, 4),
+        "avg_loss_r": round(average_loss_r, 4),
+        "rr_ratio": round(rr_ratio, 4),
         "profit_factor": round(profit_factor, 2),
-        "expectancy_r": expectancy_r(
-            win_rate=win_rate,
-            average_win_r=average_win_r,
-            average_loss_r=average_loss_r if average_loss_r > 0 else 1.0,
-        ) if pnl_r_list and wins_r else 0.0,
+        "expectancy_r": round(ev, 4),
         "max_drawdown": max_dd,
+        # ── Advanced math metrics (from article) ─────────────────────────
+        "std_dev_r": sd,
+        "signal_to_noise": stn,
+        "kelly_pct": kelly_pct,
+        "half_kelly_pct": hkelly_pct,
+        "risk_of_ruin_pct": round(ror * 100, 6),
+        "validation_required": int(valid["required_trades"]),
+        "validation_progress_pct": valid["progress_pct"],
+        "statistically_confident": valid["confident"],
     }
 
 

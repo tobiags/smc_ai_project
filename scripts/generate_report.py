@@ -125,6 +125,25 @@ def _build_html(result: dict) -> str:
     net_sign  = "+" if net_pnl >= 0 else ""
     gen_time  = datetime.now().strftime("%Y-%m-%d %H:%M")
 
+    # ── Advanced math metrics ─────────────────────────────────────────────────
+    sd_r        = kpis.get("std_dev_r", 0)
+    stn         = kpis.get("signal_to_noise", 0)
+    kelly_pct   = kpis.get("kelly_pct", 0) * 100
+    hkelly_pct  = kpis.get("half_kelly_pct", 0) * 100
+    ror_pct     = kpis.get("risk_of_ruin_pct", 0)
+    val_req     = kpis.get("validation_required", 300)
+    val_prog    = kpis.get("validation_progress_pct", 0)
+    confident   = kpis.get("statistically_confident", False)
+    avg_win_r   = kpis.get("avg_win_r", 0)
+    avg_loss_r  = kpis.get("avg_loss_r", 1)
+    rr_ratio    = kpis.get("rr_ratio", 0)
+
+    # Interpretation helpers
+    stn_label = "Edge clair ✓" if stn > 0.5 else ("Edge probable" if stn > 0.2 else "Bruit — plus de trades")
+    stn_color = "#3fb950" if stn > 0.5 else ("#f0883e" if stn > 0.2 else "#f85149")
+    ror_color = "#3fb950" if ror_pct < 0.01 else ("#f0883e" if ror_pct < 1.0 else "#f85149")
+    val_color = "#3fb950" if confident else ("#f0883e" if val_prog > 50 else "#f85149")
+
     html = f"""<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -182,6 +201,16 @@ def _build_html(result: dict) -> str:
   .tab.active{{background:#1f4e79;color:#58a6ff;border-color:#1f4e79}}
   .tab-content{{display:none}}.tab-content.active{{display:block}}
 
+  /* Math panel */
+  .math-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px}}
+  .math-card{{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:18px 16px}}
+  .math-card .title{{font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}}
+  .math-card .big{{font-size:26px;font-weight:700;line-height:1.1}}
+  .math-card .detail{{font-size:11px;color:#8b949e;margin-top:5px}}
+  .math-card .interp{{font-size:11px;font-weight:600;margin-top:6px}}
+  .progress-bar{{height:8px;background:#21262d;border-radius:4px;margin-top:8px;overflow:hidden}}
+  .progress-fill{{height:100%;border-radius:4px;transition:width .5s}}
+
   footer{{text-align:center;padding:24px;color:#484f58;font-size:12px;border-top:1px solid #21262d;margin-top:8px}}
 </style>
 </head>
@@ -235,6 +264,76 @@ def _build_html(result: dict) -> str:
       <div class="label">RR minimum</div>
       <div class="value">1:5</div>
       <div class="sub">filtre stratégie</div>
+    </div>
+  </div>
+
+  <!-- Math Analysis -->
+  <div class="section" style="margin-bottom:28px">
+    <h2>Analyse Mathématique (Probabilités &amp; Edge)</h2>
+    <div class="math-grid" style="margin-top:16px;margin-bottom:0">
+
+      <!-- Expected Value -->
+      <div class="math-card">
+        <div class="title">Espérance (EV)</div>
+        <div class="big" style="color:{'#3fb950' if exp_r>0 else '#f85149'}">{exp_r:+.3f} R</div>
+        <div class="detail">= (WR × Avg Win) − (LR × Avg Loss)<br>
+          = ({wr_pct:.0f}% × {avg_win_r:.2f}R) − ({100-wr_pct:.0f}% × {avg_loss_r:.2f}R)
+        </div>
+        <div class="interp" style="color:{'#3fb950' if exp_r>0 else '#f85149'}">
+          {'✓ Edge positif' if exp_r > 0 else '✗ Pas d\'edge — ne pas trader'}
+        </div>
+      </div>
+
+      <!-- Signal to Noise -->
+      <div class="math-card">
+        <div class="title">Signal / Bruit (Sharpe/trade)</div>
+        <div class="big" style="color:{stn_color}">{stn:.3f}</div>
+        <div class="detail">Moyenne R / Écart-type R<br>
+          &gt;0.50 = clair · 0.20-0.50 = probable · &lt;0.20 = bruit
+        </div>
+        <div class="interp" style="color:{stn_color}">{stn_label}</div>
+      </div>
+
+      <!-- Kelly Criterion -->
+      <div class="math-card">
+        <div class="title">Kelly Criterion</div>
+        <div class="big" style="color:#58a6ff">{hkelly_pct:.1f}%</div>
+        <div class="detail">Half Kelly (recommandé) — Full Kelly: {kelly_pct:.1f}%<br>
+          Kelly = WR − (1−WR) / RR = {kelly_pct/100:.3f}
+        </div>
+        <div class="interp" style="color:#8b949e">
+          Risquer {hkelly_pct:.1f}% du compte par trade
+        </div>
+      </div>
+
+      <!-- Risk of Ruin -->
+      <div class="math-card">
+        <div class="title">Risk of Ruin (100 unités)</div>
+        <div class="big" style="color:{ror_color}">{ror_pct:.4f}%</div>
+        <div class="detail">Probabilité de perdre le compte entier<br>
+          &lt;0.01% = pro · &lt;1% = acceptable · &gt;5% = danger
+        </div>
+        <div class="interp" style="color:{ror_color}">
+          {'✓ Niveau professionnel' if ror_pct < 0.01 else ('⚠ Acceptable' if ror_pct < 1 else '✗ Dangereux')}
+        </div>
+      </div>
+
+      <!-- Validation Progress -->
+      <div class="math-card" style="grid-column:span 2">
+        <div class="title">Validation Statistique (Loi des Grands Nombres)</div>
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:4px">
+          <div class="big" style="color:{val_color}">{n_trades} / {val_req}</div>
+          <div style="font-size:14px;color:#8b949e">trades ({val_prog:.0f}%)</div>
+          {'<div style="font-size:12px;font-weight:700;color:#3fb950;margin-left:auto">✓ Statistiquement validé à 95%</div>' if confident else f'<div style="font-size:12px;color:#8b949e;margin-left:auto">Besoin de {val_req - n_trades} trades supplémentaires</div>'}
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:{val_prog}%;background:{val_color}"></div>
+        </div>
+        <div class="detail" style="margin-top:8px">
+          La Loi des Grands Nombres exige ~{val_req} trades pour confirmer l'edge à 95% de confiance (Z=1.96, E=5%). Écart-type R: ±{sd_r:.3f} · RR moyen: {rr_ratio:.2f}:1
+        </div>
+      </div>
+
     </div>
   </div>
 
