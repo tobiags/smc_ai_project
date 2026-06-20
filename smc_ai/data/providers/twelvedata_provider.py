@@ -129,6 +129,63 @@ def fetch_ohlcv(
     return df[["open", "high", "low", "close", "volume"]]
 
 
+def fetch_paginated(
+    symbol: str,
+    timeframe: str,
+    total_bars: int,
+    api_key: str | None = None,
+) -> pd.DataFrame:
+    """Fetch more than 5000 bars by paginating backward in time.
+
+    Each page fetches up to 5000 bars ending before the earliest bar of the
+    previous page. Pages are concatenated and deduplicated.
+
+    Args:
+        total_bars: Target number of bars (actual may be slightly less/more due
+                    to chunking; market closures reduce effective bar count).
+    """
+    chunk_size = 5000
+    pages: list[pd.DataFrame] = []
+    end_date: str | None = None
+    fetched = 0
+    page = 0
+
+    while fetched < total_bars:
+        if page > 0:
+            time.sleep(_REQUEST_DELAY)
+        page += 1
+        want = min(chunk_size, total_bars - fetched)
+
+        try:
+            df_chunk = fetch_ohlcv(
+                symbol, timeframe, bars=chunk_size, api_key=api_key, end_date=end_date
+            )
+        except Exception as exc:
+            print(f"\n    [page {page}] ERR {exc}")
+            break
+
+        if df_chunk.empty:
+            break
+
+        pages.append(df_chunk)
+        fetched += len(df_chunk)
+
+        # Next page ends just before the earliest bar we have
+        earliest = df_chunk.index.min()
+        end_date = (earliest - pd.Timedelta(minutes=1)).strftime("%Y-%m-%d %H:%M:%S")
+        print(f"    page {page}: {len(df_chunk)} bars  (total so far: {fetched})", flush=True)
+
+        if len(df_chunk) < chunk_size:
+            break  # API returned fewer bars than requested — no more data available
+
+    if not pages:
+        raise RuntimeError(f"No data returned for {symbol} {timeframe}")
+
+    combined = pd.concat(pages)
+    combined = combined[~combined.index.duplicated(keep="first")]
+    return combined.sort_index()
+
+
 def fetch_bulk(
     symbol: str,
     out_dir: Path,
@@ -138,6 +195,7 @@ def fetch_bulk(
 ) -> dict[str, Path]:
     """Fetch D1, H4, M15 data and save to CSV files.
 
+    bars_per_tf values > 5000 trigger paginated fetching automatically.
     Returns a dict of {timeframe: csv_path}.
     """
     tfs = timeframes or ["D1", "H4", "M15"]
@@ -153,17 +211,20 @@ def fetch_bulk(
             time.sleep(_REQUEST_DELAY)
 
         n = bars.get(tf, 5000)
-        print(f"  Fetching {td_symbol} {tf} ({n} bars)…", end=" ", flush=True)
+        print(f"  {td_symbol} {tf} ({n} bars):", flush=True)
 
         try:
-            df = fetch_ohlcv(symbol, tf, bars=n, api_key=api_key)
-            # Save using broker symbol name for compatibility with backtester
+            if n > 5000:
+                df = fetch_paginated(symbol, tf, total_bars=n, api_key=api_key)
+            else:
+                df = fetch_ohlcv(symbol, tf, bars=n, api_key=api_key)
+
             fname = f"{symbol}_{tf}.csv"
             path = out_dir / fname
             df.to_csv(path)
             results[tf] = path
-            print(f"OK  {len(df)} rows -> {path}")
+            print(f"  -> OK  {len(df)} rows saved to {path}")
         except Exception as exc:
-            print(f"ERR  {exc}")
+            print(f"  -> ERR  {exc}")
 
     return results

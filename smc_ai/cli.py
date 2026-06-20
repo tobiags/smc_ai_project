@@ -28,9 +28,10 @@ def cmd_backtest(args: argparse.Namespace) -> None:
     from smc_ai.data.providers.csv_provider import default_fetcher
 
     fetcher = default_fetcher(args.data_dir)
-    df_d1 = fetcher.get(DataRequest(symbol=args.symbol, timeframe="D1", bars=200))
-    df_h4 = fetcher.get(DataRequest(symbol=args.symbol, timeframe="H4", bars=500))
-    df_m15 = fetcher.get(DataRequest(symbol=args.symbol, timeframe="M15", bars=1000))
+    # Load all available bars from CSV (0 = no limit)
+    df_d1 = fetcher.get(DataRequest(symbol=args.symbol, timeframe="D1", bars=0))
+    df_h4 = fetcher.get(DataRequest(symbol=args.symbol, timeframe="H4", bars=0))
+    df_m15 = fetcher.get(DataRequest(symbol=args.symbol, timeframe="M15", bars=0))
 
     result = run_walkforward_backtest(
         symbol=args.symbol,
@@ -39,6 +40,7 @@ def cmd_backtest(args: argparse.Namespace) -> None:
         df_m15=df_m15,
         min_rr=args.min_rr,
         scan_step=args.scan_step,
+        sim_horizon=args.sim_horizon,
     )
     print(json.dumps(result.to_dict(), indent=2, default=str))
 
@@ -72,6 +74,8 @@ def main() -> None:
     p_backtest.add_argument("--data-dir", type=Path, default=None, dest="data_dir")
     p_backtest.add_argument("--min-rr", type=float, default=5.0, dest="min_rr")
     p_backtest.add_argument("--scan-step", type=int, default=40, dest="scan_step")
+    p_backtest.add_argument("--sim-horizon", type=int, default=1000, dest="sim_horizon",
+                            help="M15 bars to simulate after entry (default 1000 = ~10 days)")
     p_backtest.set_defaults(func=cmd_backtest)
 
     p_live = sub.add_parser("live", help="Live MT5 bridge — analysis loop every 15min")

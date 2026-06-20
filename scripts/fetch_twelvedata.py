@@ -46,10 +46,12 @@ def main() -> None:
                         help="Output directory (default: data/)")
     parser.add_argument("--api-key", default=None, dest="api_key",
                         help="Twelve Data API key (overrides .env)")
-    parser.add_argument("--bars-m15", type=int, default=5000, dest="bars_m15",
-                        help="Number of M15 bars (max 5000 per call, default 5000)")
-    parser.add_argument("--bars-h4",  type=int, default=5000, dest="bars_h4")
-    parser.add_argument("--bars-d1",  type=int, default=5000, dest="bars_d1")
+    parser.add_argument("--bars-m15", type=int, default=25000, dest="bars_m15",
+                        help="Number of M15 bars (>5000 = paginated, default 25000 ~ 2 years)")
+    parser.add_argument("--bars-h4",  type=int, default=5000, dest="bars_h4",
+                        help="Number of H4 bars (default 5000 ~ 2.5 years)")
+    parser.add_argument("--bars-d1",  type=int, default=5000, dest="bars_d1",
+                        help="Number of D1 bars (default 5000 ~ 20 years)")
     args = parser.parse_args()
 
     symbols = args.symbols or ["EURUSD"]
