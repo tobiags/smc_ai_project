@@ -95,12 +95,19 @@ def build_html(data: dict) -> str:
         open_n = outcomes.get("open", 0)
 
         pnl_color = "#3fb950" if pnl >= 0 else "#f85149"
+        # PF 0.0 with wins but zero losses = degenerate sample, not bad performance
+        degenerate_pf = pf == 0.0 and k.get("avg_loss_r", 0) == 0.0 and k.get("avg_win_r", 0) > 0
+        pf_cell = (
+            '<td style="color:#8b949e;font-weight:600">N/A (0 perte)</td>'
+            if degenerate_pf
+            else f'<td style="color:{_color_pf(pf)};font-weight:600">{pf:.2f}</td>'
+        )
         rows += f"""
         <tr>
           <td style="font-weight:700;color:#58a6ff">{q['quarter']}</td>
           <td>{trades}</td>
           <td style="color:{_color_wr(wr)};font-weight:600">{round(wr*100,1)}%</td>
-          <td style="color:{_color_pf(pf)};font-weight:600">{pf:.2f}</td>
+          {pf_cell}
           <td style="color:{_color_ev(ev)};font-weight:600">{ev:+.3f}R</td>
           <td style="color:{pnl_color};font-weight:600">${pnl:+.0f}</td>
           <td>{dd}%</td>
@@ -121,8 +128,10 @@ def build_html(data: dict) -> str:
     avg_pf  = sum(q["kpis"].get("profit_factor", 0) for q in quarters) / len(quarters)
     avg_ev  = sum(q["kpis"].get("expectancy_r", 0) for q in quarters) / len(quarters)
     total_pnl = sum(round(q["kpis"].get("ending_balance", 10000) - 10000, 2) for q in quarters)
-    best_q  = max(quarters, key=lambda q: q["kpis"].get("profit_factor", 0))["quarter"]
-    worst_q = min(quarters, key=lambda q: q["kpis"].get("profit_factor", 0))["quarter"]
+    # Exclude degenerate samples (no losses → PF forced to 0.0) from best/worst ranking
+    rankable = [q for q in quarters if q["kpis"].get("avg_loss_r", 0) > 0] or quarters
+    best_q  = max(rankable, key=lambda q: q["kpis"].get("profit_factor", 0))["quarter"]
+    worst_q = min(rankable, key=lambda q: q["kpis"].get("profit_factor", 0))["quarter"]
 
     return f"""<!DOCTYPE html>
 <html lang="fr">
