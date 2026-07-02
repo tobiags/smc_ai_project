@@ -158,7 +158,7 @@ def fetch_paginated(
 
         try:
             df_chunk = fetch_ohlcv(
-                symbol, timeframe, bars=chunk_size, api_key=api_key, end_date=end_date
+                symbol, timeframe, bars=want, api_key=api_key, end_date=end_date
             )
         except Exception as exc:
             print(f"\n    [page {page}] ERR {exc}")
@@ -175,7 +175,7 @@ def fetch_paginated(
         end_date = (earliest - pd.Timedelta(minutes=1)).strftime("%Y-%m-%d %H:%M:%S")
         print(f"    page {page}: {len(df_chunk)} bars  (total so far: {fetched})", flush=True)
 
-        if len(df_chunk) < chunk_size:
+        if len(df_chunk) < want:
             break  # API returned fewer bars than requested — no more data available
 
     if not pages:

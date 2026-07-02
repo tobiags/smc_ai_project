@@ -23,7 +23,7 @@ def run_walkforward_backtest(
     df_d1: pd.DataFrame,
     df_h4: pd.DataFrame,
     df_m15: pd.DataFrame,
-    min_rr: float = 5.0,
+    min_rr: float = 2.5,
     scan_step: int = 40,
     d1_lookback: int = 200,
     h4_lookback: int = 500,
@@ -120,18 +120,25 @@ def run_walkforward_backtest(
 
 
 def _compute_kpis(trades: list[dict[str, object]], ending_balance: float) -> dict[str, float | int | str]:
-    pnl_r_list = [float(t["pnl_r"]) for t in trades]
+    # Open trades have no outcome yet — including them as 0R "losses" distorts
+    # win rate, avg loss, RR ratio, and every derived metric (Kelly, RoR, EV).
+    closed = [t for t in trades if t.get("outcome") != "open"]
+    open_count = len(trades) - len(closed)
+
+    pnl_r_list = [float(t["pnl_r"]) for t in closed]
     wins_r = [r for r in pnl_r_list if r > 0]
     losses_r = [abs(r) for r in pnl_r_list if r <= 0]
     gross_profit_r = sum(wins_r)
     gross_loss_r = sum(losses_r)
-    profit_factor = gross_profit_r / gross_loss_r if gross_loss_r else gross_profit_r
+    # Without any loss the ratio is undefined — report 0.0 rather than a fake
+    # number so downstream consumers can detect the degenerate sample.
+    profit_factor = gross_profit_r / gross_loss_r if gross_loss_r else 0.0
     average_win_r = gross_profit_r / len(wins_r) if wins_r else 0.0
-    average_loss_r = gross_loss_r / len(losses_r) if losses_r else 1.0
+    average_loss_r = gross_loss_r / len(losses_r) if losses_r else 0.0
     win_rate = len(wins_r) / len(pnl_r_list) if pnl_r_list else 0.0
 
     eq_values = [10_000.0]
-    for t in trades:
+    for t in closed:
         eq_values.append(eq_values[-1] + float(t["pnl"]))
     max_dd = _max_drawdown(eq_values)
 
@@ -139,9 +146,9 @@ def _compute_kpis(trades: list[dict[str, object]], ending_balance: float) -> dic
         expectancy_r(
             win_rate=win_rate,
             average_win_r=average_win_r,
-            average_loss_r=average_loss_r if average_loss_r > 0 else 1.0,
+            average_loss_r=average_loss_r,
         )
-        if pnl_r_list and wins_r
+        if wins_r and losses_r
         else 0.0
     )
 
@@ -154,12 +161,14 @@ def _compute_kpis(trades: list[dict[str, object]], ending_balance: float) -> dic
 
     sd    = std_dev_r(pnl_r_list)
     stn   = signal_to_noise(pnl_r_list)
-    valid = validation_progress(len(trades), win_rate if win_rate > 0 else 0.5)
+    valid = validation_progress(len(closed), win_rate if win_rate > 0 else 0.5)
 
     return {
         "starting_balance": 10_000,
         "ending_balance": round(ending_balance, 2),
         "total_trades": len(trades),
+        "closed_trades": len(closed),
+        "open_trades": open_count,
         "win_rate": round(win_rate, 4),
         "avg_win_r": round(average_win_r, 4),
         "avg_loss_r": round(average_loss_r, 4),

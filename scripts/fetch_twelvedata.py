@@ -13,31 +13,17 @@ Then run the backtest:
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
 # Allow running as plain script without installing the package
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-
-def _load_dotenv(path: Path = Path(".env")) -> None:
-    """Minimal .env loader — no external dependency needed."""
-    if not path.exists():
-        return
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, _, val = line.partition("=")
-        key = key.strip()
-        val = val.strip().strip('"').strip("'")
-        if key and key not in os.environ:
-            os.environ[key] = val
+from smc_ai.utils import load_dotenv
 
 
 def main() -> None:
-    _load_dotenv()
+    load_dotenv()
 
     parser = argparse.ArgumentParser(description="Fetch Twelve Data OHLCV → CSV")
     parser.add_argument("--symbol",  action="append", default=[], dest="symbols",

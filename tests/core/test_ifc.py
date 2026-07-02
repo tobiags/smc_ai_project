@@ -40,13 +40,13 @@ def test_detect_ifc_doji_is_always_ifc():
     assert result.iloc[0]["BodyRatio"] == 0.0
 
 
-def test_detect_ifc_zero_range_candle_is_ifc():
-    # high == low → range = 0 → ratio treated as 0.0
+def test_detect_ifc_zero_range_candle_is_not_ifc():
+    # high == low → no rejection information → must NOT qualify as IFC
     df = _ohlcv([(1.100, 1.100, 1.100, 1.100)])
     result = detect_ifc(df)
 
-    assert bool(result.iloc[0]["IFC"]) is True
-    assert result.iloc[0]["BodyRatio"] == 0.0
+    assert bool(result.iloc[0]["IFC"]) is False
+    assert result.iloc[0]["BodyRatio"] == 1.0
 
 
 def test_detect_ifc_invalid_threshold_raises():

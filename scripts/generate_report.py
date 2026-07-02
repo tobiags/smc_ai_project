@@ -16,6 +16,10 @@ import webbrowser
 from datetime import datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from smc_ai.utils import read_text_auto
+
 
 # ── HTML template ─────────────────────────────────────────────────────────────
 
@@ -486,9 +490,15 @@ function showTab(which) {{
 
 # ── main ──────────────────────────────────────────────────────────────────────
 
-def run(symbol: str, data_dir: str, min_rr: float, scan_step: int, out: str) -> None:
-    """Run backtest via CLI and generate HTML report."""
-    print(f"Running backtest for {symbol}…")
+def run_from_file(result_path: Path, out: str) -> None:
+    """Generate HTML from an existing backtest JSON result file."""
+    result = json.loads(read_text_auto(result_path))
+    _save_and_open(result, out)
+
+
+def run_backtest(symbol: str, data_dir: str, min_rr: float, scan_step: int, out: str) -> None:
+    """Re-run backtest via CLI then generate HTML (slow path)."""
+    print(f"Running backtest for {symbol}...")
     cmd = [
         sys.executable, "-m", "smc_ai.cli", "backtest",
         "--symbol", symbol,
@@ -501,21 +511,22 @@ def run(symbol: str, data_dir: str, min_rr: float, scan_step: int, out: str) -> 
         print("Backtest error:")
         print(proc.stderr)
         sys.exit(1)
-
     result = json.loads(proc.stdout)
-    html   = _build_html(result)
+    _save_and_open(result, out)
 
-    out_path = Path(out)
+
+def _save_and_open(result: dict, out: str) -> None:
+    html = _build_html(result)
+    symbol = result.get("symbol", "UNKNOWN")
+    out_path = Path(out.replace("{symbol}", symbol))
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(html, encoding="utf-8")
-
-    print(f"✓ Report saved → {out_path.resolve()}")
+    print(f"Report saved -> {out_path.resolve()}")
     webbrowser.open(out_path.resolve().as_uri())
-    print("  Opening in browser…")
 
 
 def main() -> None:
-    # If stdin has data, read JSON directly (pipe mode)
+    # Pipe mode: JSON piped from CLI
     if not sys.stdin.isatty():
         raw = sys.stdin.read()
         result = json.loads(raw)
@@ -523,20 +534,27 @@ def main() -> None:
         out_path = Path(f"reports/backtest_{symbol}.html")
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(_build_html(result), encoding="utf-8")
-        print(f"✓ Report → {out_path.resolve()}")
+        print(f"Report -> {out_path.resolve()}")
         webbrowser.open(out_path.resolve().as_uri())
         return
 
     parser = argparse.ArgumentParser(description="Generate HTML backtest report")
-    parser.add_argument("--symbol",     default="EURUSD.s")
-    parser.add_argument("--data-dir",   default="data",     dest="data_dir")
-    parser.add_argument("--min-rr",     type=float, default=5.0, dest="min_rr")
-    parser.add_argument("--scan-step",  type=int,   default=40,  dest="scan_step")
-    parser.add_argument("--out",        default="reports/backtest_{symbol}.html")
+    parser.add_argument("--symbol",      default="EURUSD")
+    parser.add_argument("--data-dir",    default="data",  dest="data_dir")
+    parser.add_argument("--result-file", default=None,    dest="result_file",
+                        help="Path to existing backtest_result.json (skips re-running)")
+    parser.add_argument("--min-rr",      type=float, default=2.5, dest="min_rr")
+    parser.add_argument("--scan-step",   type=int,   default=40,  dest="scan_step")
+    parser.add_argument("--out",         default="reports/backtest_{symbol}.html")
     args = parser.parse_args()
 
-    out = args.out.replace("{symbol}", args.symbol)
-    run(args.symbol, args.data_dir, args.min_rr, args.scan_step, out)
+    # Fast path: use existing result JSON
+    result_path = Path(args.result_file) if args.result_file else Path(args.data_dir) / "backtest_result.json"
+    if result_path.exists():
+        print(f"Using existing result: {result_path}")
+        run_from_file(result_path, args.out)
+    else:
+        run_backtest(args.symbol, args.data_dir, args.min_rr, args.scan_step, args.out)
 
 
 if __name__ == "__main__":

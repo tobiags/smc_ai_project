@@ -18,6 +18,7 @@ def cmd_analyze(args: argparse.Namespace) -> None:
         df_d1=df_d1,
         df_h4=df_h4,
         df_m15=df_m15,
+        min_rr=getattr(args, "min_rr", 2.5),
     )
     print(json.dumps(result.to_dict(), indent=2, default=str))
 
@@ -45,6 +46,33 @@ def cmd_backtest(args: argparse.Namespace) -> None:
     print(json.dumps(result.to_dict(), indent=2, default=str))
 
 
+def cmd_quarterly(args: argparse.Namespace) -> None:
+    from smc_ai.backtest.quarterly import run_quarterly_backtest
+    from smc_ai.data.fetcher import DataRequest
+    from smc_ai.data.providers.csv_provider import default_fetcher
+
+    fetcher = default_fetcher(args.data_dir)
+    df_d1  = fetcher.get(DataRequest(symbol=args.symbol, timeframe="D1",  bars=0))
+    df_h4  = fetcher.get(DataRequest(symbol=args.symbol, timeframe="H4",  bars=0))
+    df_m15 = fetcher.get(DataRequest(symbol=args.symbol, timeframe="M15", bars=0))
+
+    print(f"Running quarterly backtest for {args.symbol} | RR>={args.min_rr} ...")
+    out_dir = Path(args.data_dir) / "quarters" if args.data_dir else Path("data/quarters")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    quarters = run_quarterly_backtest(
+        symbol=args.symbol,
+        df_d1=df_d1,
+        df_h4=df_h4,
+        df_m15=df_m15,
+        min_rr=args.min_rr,
+        scan_step=args.scan_step,
+        sim_horizon=args.sim_horizon,
+        m15_lookback=getattr(args, "m15_lookback", 500),
+        out_dir=out_dir,
+    )
+    print(json.dumps({"symbol": args.symbol, "quarters": quarters}, indent=2, default=str))
+
+
 def cmd_live(args: argparse.Namespace) -> None:
     from smc_ai.bridge.live_loop import run_live
 
@@ -67,22 +95,32 @@ def main() -> None:
     p_analyze.add_argument("--symbol", default="EURUSD", help="Trading symbol (e.g. EURUSD)")
     p_analyze.add_argument("--data-dir", type=Path, default=None, dest="data_dir",
                            help="Directory containing {symbol}_{timeframe}.csv files")
+    p_analyze.add_argument("--min-rr", type=float, default=2.5, dest="min_rr")
     p_analyze.set_defaults(func=cmd_analyze)
 
     p_backtest = sub.add_parser("backtest", help="Walk-forward backtest on CSV data")
     p_backtest.add_argument("--symbol", default="EURUSD")
     p_backtest.add_argument("--data-dir", type=Path, default=None, dest="data_dir")
-    p_backtest.add_argument("--min-rr", type=float, default=5.0, dest="min_rr")
+    p_backtest.add_argument("--min-rr", type=float, default=2.5, dest="min_rr")
     p_backtest.add_argument("--scan-step", type=int, default=40, dest="scan_step")
     p_backtest.add_argument("--sim-horizon", type=int, default=1000, dest="sim_horizon",
                             help="M15 bars to simulate after entry (default 1000 = ~10 days)")
     p_backtest.set_defaults(func=cmd_backtest)
 
+    p_quarterly = sub.add_parser("quarterly", help="Backtest par trimestre — evolution de la performance")
+    p_quarterly.add_argument("--symbol",      default="EURUSD")
+    p_quarterly.add_argument("--data-dir",    type=Path, default=None, dest="data_dir")
+    p_quarterly.add_argument("--min-rr",      type=float, default=2.5, dest="min_rr")
+    p_quarterly.add_argument("--scan-step",   type=int,   default=120, dest="scan_step")
+    p_quarterly.add_argument("--sim-horizon", type=int,   default=500,  dest="sim_horizon")
+    p_quarterly.add_argument("--m15-lookback", type=int,  default=500,  dest="m15_lookback")
+    p_quarterly.set_defaults(func=cmd_quarterly)
+
     p_live = sub.add_parser("live", help="Live MT5 bridge — analysis loop every 15min")
     p_live.add_argument("--symbol",     default="EURUSD", help="e.g. EURUSD, XAUUSD")
     p_live.add_argument("--risk-pct",   type=float, default=0.01, dest="risk_pct",
                         help="Account risk per trade (default 0.01 = 1%%)")
-    p_live.add_argument("--min-rr",     type=float, default=5.0,  dest="min_rr")
+    p_live.add_argument("--min-rr",     type=float, default=2.5,  dest="min_rr")
     p_live.add_argument("--auto-trade", action="store_true", dest="auto_trade",
                         help="Send orders automatically (no confirmation prompt)")
     p_live.add_argument("--login",    type=int,   default=None, help="MT5 account number")

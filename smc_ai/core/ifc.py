@@ -168,7 +168,9 @@ def detect_b2_entry(
 def _compute_body_ratios(df: pd.DataFrame) -> pd.Series:
     candle_range = df["high"] - df["low"]
     body = (df["close"] - df["open"]).abs()
-    ratios = pd.Series(0.0, index=df.index)
+    # Zero-range candles (high == low) carry no rejection information and must
+    # not qualify as IFC — assign ratio 1.0 so they fail any valid threshold.
+    ratios = pd.Series(1.0, index=df.index)
     nonzero = candle_range > 0
     ratios[nonzero] = body[nonzero] / candle_range[nonzero]
     return ratios

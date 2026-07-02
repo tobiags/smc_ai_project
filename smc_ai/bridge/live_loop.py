@@ -39,7 +39,7 @@ _CANDLE_MINUTES = 15        # M15 candle period
 def run_live(
     symbol: str = "EURUSD",
     risk_pct: float = 0.01,
-    min_rr: float = 5.0,
+    min_rr: float = 2.5,
     auto_trade: bool = False,
     login: int | None = None,
     password: str | None = None,

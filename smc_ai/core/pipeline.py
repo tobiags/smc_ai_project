@@ -63,7 +63,7 @@ def run_multitf_analysis(
     df_d1: pd.DataFrame,
     df_h4: pd.DataFrame,
     df_m15: pd.DataFrame,
-    min_rr: float = 5.0,
+    min_rr: float = 2.5,
     swing_length: int = 5,
     stop_buffer: float = 0.0,
 ) -> MultiTFAnalysis:
