@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from smc_ai.data.models import validate_ohlcv
@@ -39,21 +40,33 @@ def calculate_fvg(
 
 
 def _fallback_swing_highs_lows(df: pd.DataFrame, swing_length: int) -> pd.DataFrame:
-    result = pd.DataFrame(0, index=df.index, columns=["HighLow"], dtype=int)
-    result["Level"] = pd.NA
+    n = len(df)
+    highs = df["high"].to_numpy(dtype=float)
+    lows = df["low"].to_numpy(dtype=float)
+    high_low = np.zeros(n, dtype=int)
+    level = np.full(n, pd.NA, dtype=object)
 
-    for position in range(swing_length, len(df) - swing_length):
-        window = df.iloc[position - swing_length : position + swing_length + 1]
-        current_high = float(df.iloc[position]["high"])
-        current_low = float(df.iloc[position]["low"])
+    window = 2 * swing_length + 1
+    if n >= window:
+        from numpy.lib.stride_tricks import sliding_window_view
 
-        if current_high == float(window["high"].max()):
-            result.iloc[position, result.columns.get_loc("HighLow")] = 1
-            result.iloc[position, result.columns.get_loc("Level")] = current_high
-        elif current_low == float(window["low"].min()):
-            result.iloc[position, result.columns.get_loc("HighLow")] = -1
-            result.iloc[position, result.columns.get_loc("Level")] = current_low
+        win_max = sliding_window_view(highs, window).max(axis=1)
+        win_min = sliding_window_view(lows, window).min(axis=1)
+        centers = np.arange(swing_length, n - swing_length)
+        # A bar is a swing high if its high equals the window max; the elif
+        # ordering of the original loop means "high wins ties over low".
+        is_high = highs[centers] == win_max
+        is_low = (lows[centers] == win_min) & ~is_high
 
+        high_low[centers[is_high]] = 1
+        high_low[centers[is_low]] = -1
+        for pos in centers[is_high]:
+            level[pos] = float(highs[pos])
+        for pos in centers[is_low]:
+            level[pos] = float(lows[pos])
+
+    result = pd.DataFrame({"HighLow": high_low}, index=df.index)
+    result["Level"] = level
     return result
 
 
@@ -62,48 +75,43 @@ def _fallback_fvg(
     lookback_period: int | None = None,
     body_multiplier: float = 1.5,
 ) -> pd.DataFrame:
-    result = pd.DataFrame(0, index=df.index, columns=["FVG"], dtype=int)
-    result["Top"] = pd.NA
-    result["Bottom"] = pd.NA
+    n = len(df)
+    fvg = np.zeros(n, dtype=int)
+    top = np.full(n, pd.NA, dtype=object)
+    bottom = np.full(n, pd.NA, dtype=object)
+
+    if n >= 3:
+        highs = df["high"].to_numpy(dtype=float)
+        lows = df["low"].to_numpy(dtype=float)
+
+        positions = np.arange(2, n)
+        bull = lows[2:] > highs[:-2]
+        bear = highs[2:] < lows[:-2]
+
+        if lookback_period is not None:
+            bodies = np.abs(df["close"].to_numpy(dtype=float) - df["open"].to_numpy(dtype=float))
+            significant = np.ones(n - 2, dtype=bool)
+            for i, pos in enumerate(range(2, n)):
+                start = max(0, pos - 1 - lookback_period)
+                previous = bodies[start : pos - 1]
+                if previous.size:
+                    avg_body = float(previous.mean())
+                    avg_body = avg_body if avg_body > 0 else 0.001
+                    significant[i] = bodies[pos - 1] > avg_body * body_multiplier
+            bull &= significant
+            bear &= significant
+
+        for pos in positions[bull]:
+            fvg[pos] = 1
+            bottom[pos] = float(highs[pos - 2])
+            top[pos] = float(lows[pos])
+        for pos in positions[bear]:
+            fvg[pos] = -1
+            bottom[pos] = float(highs[pos])
+            top[pos] = float(lows[pos - 2])
+
+    result = pd.DataFrame({"FVG": fvg}, index=df.index)
+    result["Top"] = top
+    result["Bottom"] = bottom
     result["MitigatedIndex"] = pd.NA
-
-    for position in range(2, len(df)):
-        current = df.iloc[position]
-        two_back = df.iloc[position - 2]
-
-        if not _middle_body_is_significant(df, position, lookback_period, body_multiplier):
-            continue
-
-        if float(current["low"]) > float(two_back["high"]):
-            result.iloc[position, result.columns.get_loc("FVG")] = 1
-            result.iloc[position, result.columns.get_loc("Bottom")] = float(two_back["high"])
-            result.iloc[position, result.columns.get_loc("Top")] = float(current["low"])
-        elif float(current["high"]) < float(two_back["low"]):
-            result.iloc[position, result.columns.get_loc("FVG")] = -1
-            result.iloc[position, result.columns.get_loc("Bottom")] = float(current["high"])
-            result.iloc[position, result.columns.get_loc("Top")] = float(two_back["low"])
-
     return result
-
-
-def _middle_body_is_significant(
-    df: pd.DataFrame,
-    position: int,
-    lookback_period: int | None,
-    body_multiplier: float,
-) -> bool:
-    if lookback_period is None:
-        return True
-
-    middle = df.iloc[position - 1]
-    middle_body = abs(float(middle["close"]) - float(middle["open"]))
-    start = max(0, position - 1 - lookback_period)
-    previous = df.iloc[start : position - 1]
-
-    if previous.empty:
-        return True
-
-    previous_bodies = (previous["close"] - previous["open"]).abs()
-    avg_body = float(previous_bodies.mean())
-    avg_body = avg_body if avg_body > 0 else 0.001
-    return middle_body > avg_body * body_multiplier

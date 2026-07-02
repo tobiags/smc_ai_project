@@ -51,12 +51,12 @@ def filter_obs_by_leg(
 
     # Clear all OBs that are not OB_IDM or OB_Extreme (= Liquidity Traps)
     result = order_blocks.copy()
-    for idx in ob_index_list:
-        if idx not in valid_ob_indices:
-            result.loc[idx, "OB"] = 0
-            result.loc[idx, "Top"] = pd.NA
-            result.loc[idx, "Bottom"] = pd.NA
-            if "MitigatedIndex" in result.columns:
-                result.loc[idx, "MitigatedIndex"] = pd.NA
+    invalid = [idx for idx in ob_index_list if idx not in valid_ob_indices]
+    if invalid:
+        result.loc[invalid, "OB"] = 0
+        result.loc[invalid, "Top"] = pd.NA
+        result.loc[invalid, "Bottom"] = pd.NA
+        if "MitigatedIndex" in result.columns:
+            result.loc[invalid, "MitigatedIndex"] = pd.NA
 
     return result

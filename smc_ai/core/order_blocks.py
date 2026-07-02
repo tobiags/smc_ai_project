@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from smc_ai.core.indicators import calculate_fvg
@@ -9,41 +10,48 @@ def detect_order_blocks(df: pd.DataFrame, fvg: pd.DataFrame | None = None) -> pd
     fvg = fvg if fvg is not None else calculate_fvg(normalized)
     _validate_fvg_frame(normalized, fvg)
 
-    result = pd.DataFrame(0, index=normalized.index, columns=["OB"], dtype=int)
-    result["Top"] = pd.NA
-    result["Bottom"] = pd.NA
-    result["SourceFVGIndex"] = pd.NA
-    result["MitigatedIndex"] = pd.NA
+    n = len(normalized)
+    index = normalized.index
+    highs = normalized["high"].to_numpy(dtype=float)
+    lows = normalized["low"].to_numpy(dtype=float)
+    fvg_values = fvg["FVG"].to_numpy(dtype=int)
 
-    for position in range(1, len(normalized) - 2):
-        candidate = normalized.iloc[position]
-        previous = normalized.iloc[position - 1]
-        source_fvg_index = normalized.index[position + 2]
-        source_fvg = int(fvg.loc[source_fvg_index, "FVG"])
+    ob = np.zeros(n, dtype=int)
+    top = np.full(n, pd.NA, dtype=object)
+    bottom = np.full(n, pd.NA, dtype=object)
+    source = np.full(n, pd.NA, dtype=object)
+    mitigated = np.full(n, pd.NA, dtype=object)
 
-        if source_fvg == 1 and _takes_sell_side_liquidity(candidate, previous):
-            _mark_order_block(result, normalized.index[position], 1, candidate, source_fvg_index)
-        elif source_fvg == -1 and _takes_buy_side_liquidity(candidate, previous):
-            _mark_order_block(result, normalized.index[position], -1, candidate, source_fvg_index)
+    for pos in range(1, n - 2):
+        source_fvg = int(fvg_values[pos + 2])
+        # Bullish OB takes sell-side liquidity (low below previous low);
+        # bearish OB takes buy-side liquidity (high above previous high).
+        if source_fvg == 1 and lows[pos] < lows[pos - 1]:
+            direction = 1
+        elif source_fvg == -1 and highs[pos] > highs[pos - 1]:
+            direction = -1
+        else:
+            continue
+        ob[pos] = direction
+        top[pos] = float(highs[pos])
+        bottom[pos] = float(lows[pos])
+        source[pos] = index[pos + 2]
 
-    _mark_mitigated_order_blocks(result, normalized)
+    # Mitigation: first future bar whose wick trades back into the OB.
+    for pos in np.nonzero(ob)[0]:
+        if ob[pos] == 1:
+            hits = np.nonzero(lows[pos + 1 :] <= float(bottom[pos]))[0]
+        else:
+            hits = np.nonzero(highs[pos + 1 :] >= float(top[pos]))[0]
+        if hits.size:
+            mitigated[pos] = index[pos + 1 + int(hits[0])]
+
+    result = pd.DataFrame({"OB": ob}, index=index)
+    result["Top"] = top
+    result["Bottom"] = bottom
+    result["SourceFVGIndex"] = source
+    result["MitigatedIndex"] = mitigated
     return result
-
-
-def _mark_mitigated_order_blocks(result: pd.DataFrame, df: pd.DataFrame) -> None:
-    ob_indices = result.index[result["OB"] != 0]
-    for ob_index in ob_indices:
-        ob_direction = int(result.loc[ob_index, "OB"])
-        ob_top = float(result.loc[ob_index, "Top"])
-        ob_bottom = float(result.loc[ob_index, "Bottom"])
-        future = df.loc[ob_index:].iloc[1:]
-        for fut_index, candle in future.iterrows():
-            if ob_direction == 1 and float(candle["low"]) <= ob_bottom:
-                result.loc[ob_index, "MitigatedIndex"] = fut_index
-                break
-            if ob_direction == -1 and float(candle["high"]) >= ob_top:
-                result.loc[ob_index, "MitigatedIndex"] = fut_index
-                break
 
 
 def _validate_fvg_frame(df: pd.DataFrame, fvg: pd.DataFrame) -> None:
@@ -51,24 +59,3 @@ def _validate_fvg_frame(df: pd.DataFrame, fvg: pd.DataFrame) -> None:
         raise ValueError("fvg must contain an FVG column")
     if not fvg.index.equals(df.index):
         raise ValueError("fvg index must match OHLCV index")
-
-
-def _takes_sell_side_liquidity(candidate: pd.Series, previous: pd.Series) -> bool:
-    return float(candidate["low"]) < float(previous["low"])
-
-
-def _takes_buy_side_liquidity(candidate: pd.Series, previous: pd.Series) -> bool:
-    return float(candidate["high"]) > float(previous["high"])
-
-
-def _mark_order_block(
-    result: pd.DataFrame,
-    index: pd.Timestamp,
-    direction: int,
-    candle: pd.Series,
-    source_fvg_index: pd.Timestamp,
-) -> None:
-    result.loc[index, "OB"] = direction
-    result.loc[index, "Top"] = float(candle["high"])
-    result.loc[index, "Bottom"] = float(candle["low"])
-    result.loc[index, "SourceFVGIndex"] = source_fvg_index

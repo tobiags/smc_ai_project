@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from smc_ai.core.indicators import calculate_swing_highs_lows
@@ -10,17 +11,20 @@ BEARISH_STRUCTURE_LABELS = {"LH", "LL"}
 
 def label_market_structure(df: pd.DataFrame, swing_length: int = 5) -> pd.DataFrame:
     swings = calculate_swing_highs_lows(df, swing_length=swing_length).copy()
-    swings["Structure"] = pd.NA
+
+    high_low_arr = swings["HighLow"].to_numpy()
+    level_arr = swings["Level"].to_numpy(dtype=object)
+    structure = np.full(len(swings), pd.NA, dtype=object)
 
     previous_high: float | None = None
     previous_low: float | None = None
 
-    for index, row in swings.iterrows():
-        high_low = int(row["HighLow"])
-        if high_low == 0 or pd.isna(row["Level"]):
+    for pos in range(len(swings)):
+        high_low = int(high_low_arr[pos])
+        if high_low == 0 or pd.isna(level_arr[pos]):
             continue
 
-        level = float(row["Level"])
+        level = float(level_arr[pos])
         if high_low == 1:
             label = "H" if previous_high is None else _label_high(level, previous_high)
             previous_high = level
@@ -30,8 +34,9 @@ def label_market_structure(df: pd.DataFrame, swing_length: int = 5) -> pd.DataFr
         else:
             continue
 
-        swings.at[index, "Structure"] = label
+        structure[pos] = label
 
+    swings["Structure"] = structure
     return swings
 
 
@@ -44,41 +49,58 @@ def detect_structure_events(
     structure = structure if structure is not None else label_market_structure(normalized, swing_length)
     _validate_structure_frame(normalized, structure)
 
-    result = pd.DataFrame(
-        {
-            "Event": pd.NA,
-            "Direction": pd.NA,
-            "BreakType": pd.NA,
-            "BrokenStructure": pd.NA,
-            "BrokenLevel": pd.NA,
-        },
-        index=normalized.index,
-    )
+    n = len(normalized)
+    closes = normalized["close"].to_numpy(dtype=float)
+    highs = normalized["high"].to_numpy(dtype=float)
+    lows = normalized["low"].to_numpy(dtype=float)
+    s_high_low = structure["HighLow"].to_numpy()
+    s_level = structure["Level"].to_numpy(dtype=object)
+    s_structure = structure["Structure"].to_numpy(dtype=object)
+
+    col_event = np.full(n, pd.NA, dtype=object)
+    col_direction = np.full(n, pd.NA, dtype=object)
+    col_break_type = np.full(n, pd.NA, dtype=object)
+    col_broken_structure = np.full(n, pd.NA, dtype=object)
+    col_broken_level = np.full(n, pd.NA, dtype=object)
 
     latest_high: tuple[float, str] | None = None
     latest_low: tuple[float, str] | None = None
     structure_labels: list[str] = []
 
-    for index, candle in normalized.iterrows():
-        event, is_choch = _detect_break_event(candle, latest_high, latest_low, structure_labels)
+    for pos in range(n):
+        event, is_choch = _detect_break_event(
+            closes[pos], highs[pos], lows[pos], latest_high, latest_low, structure_labels
+        )
         if event is not None:
-            result.loc[index] = event
+            col_event[pos] = event["Event"]
+            col_direction[pos] = event["Direction"]
+            col_break_type[pos] = event["BreakType"]
+            col_broken_structure[pos] = event["BrokenStructure"]
+            col_broken_level[pos] = event["BrokenLevel"]
             if is_choch:
                 latest_high = None
                 latest_low = None
                 structure_labels.clear()
 
-        row = structure.loc[index]
-        if int(row["HighLow"]) != 0 and not pd.isna(row["Level"]) and not pd.isna(row["Structure"]):
-            level = float(row["Level"])
-            label = str(row["Structure"])
+        if int(s_high_low[pos]) != 0 and not pd.isna(s_level[pos]) and not pd.isna(s_structure[pos]):
+            level = float(s_level[pos])
+            label = str(s_structure[pos])
             structure_labels.append(label)
-            if int(row["HighLow"]) == 1:
+            if int(s_high_low[pos]) == 1:
                 latest_high = (level, label)
-            elif int(row["HighLow"]) == -1:
+            elif int(s_high_low[pos]) == -1:
                 latest_low = (level, label)
 
-    return result
+    return pd.DataFrame(
+        {
+            "Event": col_event,
+            "Direction": col_direction,
+            "BreakType": col_break_type,
+            "BrokenStructure": col_broken_structure,
+            "BrokenLevel": col_broken_level,
+        },
+        index=normalized.index,
+    )
 
 
 def latest_structure_bias(structure: pd.DataFrame) -> str:
@@ -116,7 +138,9 @@ def _validate_structure_frame(df: pd.DataFrame, structure: pd.DataFrame) -> None
 
 
 def _detect_break_event(
-    candle: pd.Series,
+    close: float,
+    high: float,
+    low: float,
     latest_high: tuple[float, str] | None,
     latest_low: tuple[float, str] | None,
     structure_labels: list[str],
@@ -126,18 +150,18 @@ def _detect_break_event(
 
     if latest_high is not None:
         high_level, high_label = latest_high
-        if float(candle["close"]) > high_level:
+        if close > high_level:
             is_choch = current_bias == "bearish"
             return _event("CHOCH" if is_choch else "BOS", "bullish", "close", high_label, high_level), is_choch
-        if float(candle["high"]) > high_level:
+        if high > high_level:
             return _event("SWEEP", "bullish", "wick", high_label, high_level), False
 
     if latest_low is not None:
         low_level, low_label = latest_low
-        if float(candle["close"]) < low_level:
+        if close < low_level:
             is_choch = current_bias == "bullish"
             return _event("CHOCH" if is_choch else "BOS", "bearish", "close", low_label, low_level), is_choch
-        if float(candle["low"]) < low_level:
+        if low < low_level:
             return _event("SWEEP", "bearish", "wick", low_label, low_level), False
 
     return None, False
