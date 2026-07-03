@@ -11,8 +11,28 @@ from pathlib import Path
 
 import pandas as pd
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 _API_BASE = "https://api.twelvedata.com/time_series"
+
+# Shared session: connection pooling + automatic retries on transient errors
+# (requests docs recommend a Session for repeated calls to the same host).
+_session: requests.Session | None = None
+
+
+def _get_session() -> requests.Session:
+    global _session
+    if _session is None:
+        _session = requests.Session()
+        retries = Retry(
+            total=3,
+            backoff_factor=1.0,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods={"GET"},
+        )
+        _session.mount("https://", HTTPAdapter(max_retries=retries))
+    return _session
 
 _INTERVAL_MAP = {
     "M1":  "1min",
@@ -99,7 +119,7 @@ def fetch_ohlcv(
     if end_date:
         params["end_date"] = end_date
 
-    resp = requests.get(_API_BASE, params=params, timeout=30)
+    resp = _get_session().get(_API_BASE, params=params, timeout=(5, 30))
     resp.raise_for_status()
     data = resp.json()
 

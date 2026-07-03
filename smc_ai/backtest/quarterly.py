@@ -52,8 +52,12 @@ def run_quarterly_backtest(
         if len(q_m15) < scan_step * 2:
             continue  # too few bars in this quarter
 
-        # Concatenate warmup + quarter so the backtest has lookback context
-        m15_window = pd.concat([warmup, q_m15]).drop_duplicates()
+        # Concatenate warmup + quarter so the backtest has lookback context.
+        # Dedup by INDEX, not values: drop_duplicates() would wrongly remove
+        # distinct bars that happen to share identical OHLCV (flat candles in
+        # quiet forex hours all have volume 0 and can repeat exactly).
+        m15_window = pd.concat([warmup, q_m15])
+        m15_window = m15_window[~m15_window.index.duplicated(keep="first")]
 
         # D1 / H4: all bars up to end of quarter
         d1_window = d1[d1.index <= q_end].iloc[-d1_lookback:]

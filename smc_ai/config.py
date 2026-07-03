@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     entry_timeframe: str = "M15"
     bias_timeframe: str = "D1"
     confluence_timeframe: str = "H4"
-    min_rr: float = 5.0
+    min_rr: float = 2.5
     results_dir: Path = PROJECT_ROOT / "results"
     data_dir: Path = PROJECT_ROOT / "data"
 

@@ -8,7 +8,7 @@ def test_default_pairs_and_timeframes():
 
     assert settings.pairs == ("EURUSD", "GBPUSD", "XAUUSD", "USDJPY", "AUDUSD")
     assert settings.timeframes == ("D1", "H4", "M15")
-    assert settings.min_rr == 5.0
+    assert settings.min_rr == 2.5
 
 
 def test_results_dir_defaults_to_project_results():
